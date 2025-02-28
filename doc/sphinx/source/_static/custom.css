@@ -1,4 +1,0 @@
-/* Removes table horizontal scrollbar and fits table content to page */
-.wy-table-responsive table td {
-white-space: normal;
-}

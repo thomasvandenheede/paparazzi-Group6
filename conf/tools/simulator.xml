@@ -1,4 +1,0 @@
-<program command="sw/simulator/pprzsim-launch" name="Simulator" icon="simulator.png">
-  <arg constant="@AIRCRAFT" flag="-a" />
-</program>
-

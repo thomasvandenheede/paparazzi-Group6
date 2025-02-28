@@ -1,4 +1,0 @@
-<program command="sw/ground_segment/misc/davis2ivy" name="Weather Station">
-  <arg constant="/dev/ttyUSB1" flag="-d" />
-</program>
-

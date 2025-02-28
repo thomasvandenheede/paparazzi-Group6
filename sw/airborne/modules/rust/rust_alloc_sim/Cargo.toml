@@ -1,7 +1,0 @@
-[package]
-name = "rust_alloc_sim"
-version = "0.1.0"
-authors = ["Michal Podhradsky <mpodhradsky@galois.com>"]
-edition = "2018"
-
-[dependencies]

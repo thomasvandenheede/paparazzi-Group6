@@ -1,5 +1,0 @@
-<program command="$python" name="Http Server">
-  <arg constant="http.server" flag="-m" />
-  <arg flag="8889" />
-</program>
-
