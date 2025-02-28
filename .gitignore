@@ -6,7 +6,27 @@
 !README.md
 
 # Do not ignore specific folders and their contents
-!/images/
-!/images/**
 !/Other Images/
 !/Other Images/**
+!/telemtry/
+!/telemtry/**
+!TestRun 1/
+!TestRun 1/**
+!TestRun 2/
+!TestRun 2/**
+!TestRun 3/
+!TestRun 3/**
+!TestRun 4/
+!TestRun 4/**
+!TestRun 5/
+!TestRun 5/**
+!TestRun 6/
+!TestRun 6/**
+!TestRun 7/
+!TestRun 7/**
+!TestRun 8/
+!TestRun 8/**
+!TestRun 9/
+!TestRun 9/**
+!TestRun 10/
+!TestRun 10/**
