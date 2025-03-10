@@ -30,3 +30,5 @@
 !TestRun 9/**
 !TestRun 10/
 !TestRun 10/**
+!sw/
+!sw/**
