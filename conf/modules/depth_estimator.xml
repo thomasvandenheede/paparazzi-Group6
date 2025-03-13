@@ -1,0 +1,53 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="depth_estimator">
+  <doc>
+    <description>
+      Module for depth estimation using MiDaS model and live images from Bebop.
+      Captures camera frames, processes them using MiDaS, and assigns costs for obstacle avoidance and path planning.
+    </description>
+
+    <!-- Define IDs for obstacle detection and avoidance -->
+    <define name="DEPTH_ESTIMATOR_VISUAL_DETECTION_ID" value="ABI_BROADCAST"
+            description="Used for depth-based obstacle detection." />
+    <define name="DEPTH_ESTIMATOR_CAMERA_ID" value="FRONT_CAMERA"
+            description="Camera to capture live frames for depth estimation." />
+    <define name="DEPTH_ESTIMATOR_FPS" value="10"
+            description="Frames per second for depth estimation." />
+  </doc>
+
+  <settings>
+    <dl_settings>
+      <dl_settings name="DepthEstimator">
+        <dl_setting var="depth_threshold" min="0" step="0.01" max="1.0"
+                    description="Threshold for identifying high depth areas." />
+        <dl_setting var="cost_scale" min="1" step="1" max="1000"
+                    description="Scale factor for assigning cost based on depth." />
+        <dl_setting var="max_depth" min="1" step="1" max="5000"
+                    description="Maximum depth value for normalization." />
+      </dl_settings>
+    </dl_settings>
+  </settings>
+
+  <dependencies>
+    <depends>cv</depends>
+    <depends>torch</depends>
+    <depends>opencv</depends>
+  </dependencies>
+
+  <!-- Header file -->
+  <header>
+    <file name="depth_estimator.h"/>
+  </header>
+
+  <!-- Initialization function -->
+  <init fun="depth_estimator_init()"/>
+
+  <!-- Periodic function for real-time processing -->
+  <periodic fun="depth_estimator_periodic()" freq="10"/>
+
+  <!-- Makefile configuration -->
+  <makefile target="ap|nps">
+    <file name="depth_estimator.c"/>
+  </makefile>
+</module>
