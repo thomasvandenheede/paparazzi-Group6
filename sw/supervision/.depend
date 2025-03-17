@@ -1,0 +1,56 @@
+gtk_pc.cmo :
+gtk_pc.cmx :
+gtk_process.cmo :
+gtk_process.cmx :
+paparazzicenter.cmo : \
+    pc_control_panel.cmo \
+    pc_common.cmo \
+    pc_aircraft.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmi \
+    gtk_pc.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+paparazzicenter.cmx : \
+    pc_control_panel.cmx \
+    pc_common.cmx \
+    pc_aircraft.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmx \
+    gtk_pc.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx
+pc_aircraft.cmo : \
+    pc_control_panel.cmo \
+    pc_common.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/os_calls.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/module.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/aircraft.cmo
+pc_aircraft.cmx : \
+    pc_control_panel.cmx \
+    pc_common.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/os_calls.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/module.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/aircraft.cmx
+pc_common.cmo : \
+    gtk_process.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+pc_common.cmx : \
+    gtk_process.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx
+pc_control_panel.cmo : \
+    pc_common.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+pc_control_panel.cmx : \
+    pc_common.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx

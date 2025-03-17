@@ -1,0 +1,1412 @@
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :
+acIcon.cmo : \
+    acIcon.cmi
+acIcon.cmx : \
+    acIcon.cmi
+acIcon.cmi :
+contrastLabel.cmo : \
+    contrastLabel.cmi
+contrastLabel.cmx : \
+    contrastLabel.cmi
+contrastLabel.cmi :
+gtk_papget_editor.cmo :
+gtk_papget_editor.cmx :
+gtk_papget_gauge_editor.cmo :
+gtk_papget_gauge_editor.cmx :
+gtk_papget_led_editor.cmo :
+gtk_papget_led_editor.cmx :
+gtk_papget_text_editor.cmo :
+gtk_papget_text_editor.cmx :
+mapCanvas.cmo : \
+    wind_sock.cmi \
+    mapCanvas.cmi
+mapCanvas.cmx : \
+    wind_sock.cmx \
+    mapCanvas.cmi
+mapCanvas.cmi : \
+    wind_sock.cmi
+mapFP.cmo : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi \
+    mapFP.cmi
+mapFP.cmx : \
+    xmlEdit.cmx \
+    mapWaypoints.cmx \
+    mapCanvas.cmx \
+    mapFP.cmi
+mapFP.cmi : \
+    xmlEdit.cmi \
+    mapWaypoints.cmi \
+    mapCanvas.cmi
+mapGoogle.cmo : \
+    mapCanvas.cmi \
+    mapGoogle.cmi
+mapGoogle.cmx : \
+    mapCanvas.cmx \
+    mapGoogle.cmi
+mapGoogle.cmi : \
+    mapCanvas.cmi
+mapIGN.cmo : \
+    mapCanvas.cmi \
+    mapIGN.cmi
+mapIGN.cmx : \
+    mapCanvas.cmx \
+    mapIGN.cmi
+mapIGN.cmi : \
+    mapCanvas.cmi
+mapTrack.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    acIcon.cmi \
+    mapTrack.cmi
+mapTrack.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    acIcon.cmx \
+    mapTrack.cmi
+mapTrack.cmi : \
+    mapCanvas.cmi
+mapWaypoints.cmo : \
+    mapCanvas.cmi \
+    contrastLabel.cmi \
+    mapWaypoints.cmi
+mapWaypoints.cmx : \
+    mapCanvas.cmx \
+    contrastLabel.cmx \
+    mapWaypoints.cmi
+mapWaypoints.cmi : \
+    mapCanvas.cmi \
+    contrastLabel.cmi
+papget.cmo : \
+    papget_renderer.cmi \
+    papget_common.cmi \
+    gtk_papget_editor.cmo \
+    papget.cmi
+papget.cmx : \
+    papget_renderer.cmx \
+    papget_common.cmx \
+    gtk_papget_editor.cmx \
+    papget.cmi
+papget.cmi : \
+    papget_renderer.cmi
+papget_common.cmo : \
+    papget_common.cmi
+papget_common.cmx : \
+    papget_common.cmi
+papget_common.cmi :
+papget_renderer.cmo : \
+    papget_common.cmi \
+    gtk_papget_text_editor.cmo \
+    gtk_papget_led_editor.cmo \
+    gtk_papget_gauge_editor.cmo \
+    papget_renderer.cmi
+papget_renderer.cmx : \
+    papget_common.cmx \
+    gtk_papget_text_editor.cmx \
+    gtk_papget_led_editor.cmx \
+    gtk_papget_gauge_editor.cmx \
+    papget_renderer.cmi
+papget_renderer.cmi :
+wind_sock.cmo : \
+    wind_sock.cmi
+wind_sock.cmx : \
+    wind_sock.cmi
+wind_sock.cmi :
+xmlEdit.cmo : \
+    xmlEdit.cmi
+xmlEdit.cmx : \
+    xmlEdit.cmi
+xmlEdit.cmi :

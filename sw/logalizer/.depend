@@ -1,0 +1,91 @@
+export.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmi \
+    gtk_export.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    export.cmi
+export.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmx \
+    gtk_export.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    export.cmi
+export.cmi :
+gtk_export.cmo :
+gtk_export.cmx :
+log_file.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+log_file.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx
+logplotter.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmi \
+    log_file.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/fig.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    export.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/debug.cmi
+logplotter.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmx \
+    log_file.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/fig.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    export.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/debug.cmx
+play-nox.cmo : \
+    play_core.cmo
+play-nox.cmx : \
+    play_core.cmx
+play.cmo : \
+    play_core.cmo \
+    log_file.cmo \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+play.cmx : \
+    play_core.cmx \
+    log_file.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx
+play_core.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/serial.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/defivybus.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/debug.cmi
+play_core.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/serial.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/defivybus.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/debug.cmx
+plotter.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/defivybus.cmi
+plotter.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/gtk_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/defivybus.cmx
+sd2log.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/serial.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/aircraft.cmo
+sd2log.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/serial.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/ocaml_tools.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/latlong.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/aircraft.cmx

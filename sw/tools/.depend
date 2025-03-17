@@ -1,0 +1,6 @@
+find_free_msg_id.cmo : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmi \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmi
+find_free_msg_id.cmx : \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/extXml.cmx \
+    /home/murt/paparazzi-Group6/sw/lib/ocaml/env.cmx
