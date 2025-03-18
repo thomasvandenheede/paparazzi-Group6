@@ -1,0 +1,22 @@
+<module name="nn_navigation">
+  <doc>
+    <description>
+      Neural Network-based navigation using ONNX model.
+      Processes live 320x160 grayscale images and predicts left, center, or right.
+    </description>
+    <define name="NN_CAMERA_ID" value="FRONT_CAMERA"/>
+    <define name="NN_FPS" value="5"/>
+  </doc>
+
+  <header>
+    <file name="nn_navigation.h"/>
+  </header>
+
+  <init fun="nn_navigation_init"/>
+  <periodic fun="nn_navigation_periodic" freq="5"/>
+
+  <makefile target="ap|nps">
+    <file name="nn_navigation.c"/>
+    <file name="onnx2c_model.c"/>
+  </makefile>
+</module>
