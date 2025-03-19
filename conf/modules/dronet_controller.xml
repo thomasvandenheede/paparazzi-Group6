@@ -1,0 +1,18 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="dronet_controller">
+  <doc>
+    <description>
+A module that integrates DroNet for CNN-based drone navigation.
+    </description>
+  </doc>
+
+  <header>
+    <file name="dronet_controller.h"/>
+  </header>
+  <init fun="dronet_controller_init()"/>
+  <periodic fun="dronet_controller_periodic()" freq="10"/>
+  <makefile target="ap|nps">
+    <file name="dronet_controller.c"/>
+  </makefile>
+</module>
