@@ -37,6 +37,16 @@
 #define DST_WIDTH 200
 #define DST_HEIGHT 200
 
+// DroNet parameters
+#define ALPHA 0.7f
+#define BETA 0.5f
+#define V_MAX 1.0f            // Max velocity (m/s)
+#define MAX_YAW_RATE 60.0f    // Max yaw rate (degrees per second)
+
+#define K_V 1.5f              // Proportional gain for velocity
+#define K_YAW 30.0f           // Proportional gain for yaw
+#define DT 0.1f               // Time step
+
 static uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
 static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
 static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
@@ -106,6 +116,41 @@ void orange_avoider_periodic(void)
   if(!autopilot_in_flight()){
     return;
   }
+    // Downscale and normalize input for DroNet
+    float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
+    downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
+    normalize_image(grayscale_image, dronet_input);
+
+    // Run DroNet inference
+    float steering_angle, collision_prob;
+    entry(dronet_input, &steering_angle, &collision_prob);
+
+    if (isnan(steering_angle) || isnan(collision_prob)) {
+        VERBOSE_PRINT("Invalid DroNet output! Using last known good values.\n");
+        steering_angle = last_steering_angle;
+        collision_prob = last_collision_prob;
+    } else {
+        last_steering_angle = steering_angle;
+        last_collision_prob = collision_prob;
+    }
+    
+    // Convert steering angle to heading
+    float theta_k = (1.0f - BETA) * last_output + BETA * (steering_angle * (M_PI / 2.0f));
+    float heading_increment = K_YAW * theta_k;
+
+    // Smooth out yaw rate changes
+    heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
+
+    increase_nav_heading(heading_increment);
+
+    // Convert collision probability to velocity
+    float velocity = (1.0f - ALPHA) * last_output + ALPHA * (1.0f - collision_prob) * V_MAX;
+    float move_distance = K_V * velocity * DT;
+
+    // Limit maximum movement distance to avoid instability
+    move_distance = fminf(move_distance, V_MAX * DT);
+
+    moveWaypointForward(WP_TRAJECTORY, move_distance);
 
   // compute current color thresholds
   int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
