@@ -30,6 +30,14 @@
 
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
+#include "dronet.c"
+
+extern int32_t color_count;
+extern enum navigation_state_t navigation_state;
+extern float obstacle_free_confidence;
+extern float maxDistance;
+extern float max_trajectory_confidence;
+extern float heading_increment;
 
 // Bebop camera dimensions
 #define SRC_WIDTH 640
@@ -47,18 +55,39 @@
 #define K_YAW 30.0f           // Proportional gain for yaw
 #define DT 0.1f               // Time step
 
+#define OA_COLOR_COUNT_FRAC 0.1f
+#define MAX_TRAJECTORY_CONFIDENCE 10
+#define MAX_DISTANCE 5.0f
+
+
+// Global variables for image processing
+uint8_t raw_camera_buffer[SRC_WIDTH * SRC_HEIGHT * 2];
+uint8_t grayscale_image[DST_WIDTH * DST_HEIGHT];
+
+static float last_steering_angle = 0;
+static float last_collision_prob = 0;
+static float last_output = 0;
+
+// int navigation_state = SAFE;
+enum navigation_state_t navigation_state = SAFE;
+int color_count = 0;
+float oa_color_count_frac = 0.1;  // Example threshold
+float obstacle_free_confidence = 0.0f;
+float max_trajectory_confidence = 10.0f;
+float maxDistance = 5.0f;  // Example max distance
+
 static uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
 static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
 static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
 static uint8_t increase_nav_heading(float incrementDegrees);
 static uint8_t chooseRandomIncrementAvoidance(void);
 
-enum navigation_state_t {
-  SAFE,
-  OBSTACLE_FOUND,
-  SEARCH_FOR_SAFE_HEADING,
-  OUT_OF_BOUNDS
-  };
+// enum navigation_state_t {
+//   SAFE,
+//   OBSTACLE_FOUND,
+//   SEARCH_FOR_SAFE_HEADING,
+//   OUT_OF_BOUNDS
+//   };
 
 /*
  * This next section defines an ABI messaging event (http://wiki.paparazziuav.org/wiki/ABI), necessary
@@ -90,27 +119,27 @@ void normalize_image(uint8_t *gray_img, float *normalized_img) {
   }
 }
 
-float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
-downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
-normalize_image(grayscale_image, dronet_input);
+// float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
+// downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
+// normalize_image(grayscale_image, dronet_input);
 
 /*
  * Initialisation function, setting the colour filter, random seed and heading_increment
  */
-void orange_avoider_init(void)
+void dronet_controller_init(void)
 {
   // Initialise random values
   srand(time(NULL));
   chooseRandomIncrementAvoidance();
 
   // bind our colorfilter callbacks to receive the color filter outputs
-  AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
+  // AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
 }
 
 /*
  * Function that checks it is safe to move forwards, and then moves a waypoint forward or changes the heading
  */
-void orange_avoider_periodic(void)
+void dronet_controller_periodic(void)
 {
   // only evaluate our state machine if we are flying
   if(!autopilot_in_flight()){
@@ -123,7 +152,23 @@ void orange_avoider_periodic(void)
 
     // Run DroNet inference
     float steering_angle, collision_prob;
-    entry(dronet_input, &steering_angle, &collision_prob);
+
+    float input_tensor[1][200][200][1];
+    for (int i = 0; i < 200; i++) {
+        for (int j = 0; j < 200; j++) {
+            input_tensor[0][i][j][0] = dronet_input[i * 200 + j];
+        }
+    }
+
+    float steering_output[1][1];
+    float collision_output[1][1];
+
+    entry(input_tensor, steering_output, collision_output);
+
+    steering_angle = steering_output[0][0];
+    collision_prob = collision_output[0][0];
+
+    // entry(dronet_input, &steering_angle, &collision_prob);
 
     if (isnan(steering_angle) || isnan(collision_prob)) {
         VERBOSE_PRINT("Invalid DroNet output! Using last known good values.\n");

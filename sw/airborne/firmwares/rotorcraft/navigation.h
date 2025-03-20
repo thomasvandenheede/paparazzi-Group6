@@ -190,6 +190,7 @@ extern float flight_altitude; // hmsl flight altitude in meters
  */
 #define GetAltRef() (state.ned_origin_f.hmsl)
 
+extern float heading_increment;
 
 extern void nav_init(void);
 extern void nav_run(void);

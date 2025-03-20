@@ -54,6 +54,7 @@ const float max_dist_from_home = MAX_DIST_FROM_HOME;
 const float max_dist2_from_home = MAX_DIST_FROM_HOME * MAX_DIST_FROM_HOME;
 
 float flight_altitude;
+float heading_increment = 5.0f;
 
 /** Empty navigation functions set at init
  */

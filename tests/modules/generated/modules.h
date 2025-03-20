@@ -32,6 +32,7 @@
 #include "./state.h"
 #include "mcu_periph/uart.h"
 #include "core/commands.h"
+#include "modules/dronet_controller/dronet_controller.h"
 
 // dummy variables
 extern int nav_catapult_nav_catapult_highrate_module_status;
