@@ -1,0 +1,18 @@
+<module name="dronet_image_filter">
+  <doc>
+    <description>
+      This module captures, processes, and normalizes images from the drone's front camera.
+    </description>
+  </doc>
+
+  <header>
+    <file name="dronet_image_filter.h"/>
+  </header>
+
+  <init fun="dronet_image_filter_init()"/>
+  <periodic fun="dronet_image_filter_periodic()" freq="10"/>
+
+  <makefile>
+    <file name="dronet_image_filter.c"/>
+  </makefile>
+</module>

@@ -40,8 +40,8 @@ extern float max_trajectory_confidence;
 extern float heading_increment;
 
 // Bebop camera dimensions
-#define SRC_WIDTH 640
-#define SRC_HEIGHT 480
+// #define SRC_WIDTH 640
+// #define SRC_HEIGHT 480
 #define DST_WIDTH 200
 #define DST_HEIGHT 200
 
@@ -55,14 +55,27 @@ extern float heading_increment;
 #define K_YAW 30.0f           // Proportional gain for yaw
 #define DT 0.1f               // Time step
 
-#define OA_COLOR_COUNT_FRAC 0.1f
-#define MAX_TRAJECTORY_CONFIDENCE 10
-#define MAX_DISTANCE 5.0f
+// #define OA_COLOR_COUNT_FRAC 0.1f
+// #define MAX_TRAJECTORY_CONFIDENCE 10
+// #define MAX_DISTANCE 5.0f
 
+// ABI message definition
+#ifndef DRONET_IMAGE_FILTER_ID
+#define DRONET_IMAGE_FILTER_ID 1
+#endif
 
-// Global variables for image processing
-uint8_t raw_camera_buffer[SRC_WIDTH * SRC_HEIGHT * 2];
-uint8_t grayscale_image[DST_WIDTH * DST_HEIGHT];
+// Global variables
+static float normalized_image[DST_WIDTH * DST_HEIGHT];
+static abi_event dronet_image_ev;
+
+// ABI callback function to receive processed image data
+static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float *image_data) {
+  memcpy(normalized_image, image_data, sizeof(normalized_image));
+}
+
+// // Global variables for image processing
+// uint8_t raw_camera_buffer[SRC_WIDTH * SRC_HEIGHT * 2];
+// uint8_t grayscale_image[DST_WIDTH * DST_HEIGHT];
 
 static float last_steering_angle = 0;
 static float last_collision_prob = 0;
@@ -82,6 +95,61 @@ static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
 static uint8_t increase_nav_heading(float incrementDegrees);
 static uint8_t chooseRandomIncrementAvoidance(void);
 
+// Define last values as static variables to retain their value between function calls
+static float last_theta_k = 0.0f;  
+static float last_velocity = 0.0f;  
+
+// Initialization function
+void dronet_controller_init(void) {
+  // Bind the ABI message to receive image data
+  AbiBindMsgDRONET_IMAGE(DRONET_IMAGE_FILTER_ID, &dronet_image_ev, dronet_image_cb);
+}
+
+
+void dronet_controller_periodic(void) {
+    if (!autopilot_in_flight()) {
+        return;
+    }
+
+    // Run DroNet inference
+    float steering_angle, collision_prob;
+    float input_tensor[1][200][200][1];
+
+    // Convert received image data into DroNet input format
+    for (int i = 0; i < 200; i++) {
+        for (int j = 0; j < 200; j++) {
+            input_tensor[0][i][j][0] = normalized_image[i * 200 + j];
+        }
+    }
+
+    float steering_output[1][1];
+    float collision_output[1][1];
+
+    entry(input_tensor, steering_output, collision_output);
+
+    steering_angle = steering_output[0][0];
+    collision_prob = collision_output[0][0];
+
+    float theta_k = (1.0f - BETA) * last_theta_k + BETA * (steering_angle * (M_PI / 2.0f));
+    last_theta_k = theta_k;  // Update stored value
+
+    // Convert steering angle to heading change
+    float heading_increment = K_YAW * theta_k;
+
+    // Limit yaw rate
+    heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
+    increase_nav_heading(heading_increment);
+
+    float velocity = (1.0f - ALPHA) * last_velocity + ALPHA * (1.0f - collision_prob) * V_MAX;
+    last_velocity = velocity;  // Update stored value
+
+    float move_distance = K_V * velocity * DT;
+    move_distance = fminf(move_distance, V_MAX * DT);
+
+    // Move the drone
+    moveWaypointForward(WP_TRAJECTORY, move_distance);
+}
+
 // enum navigation_state_t {
 //   SAFE,
 //   OBSTACLE_FOUND,
@@ -96,179 +164,180 @@ static uint8_t chooseRandomIncrementAvoidance(void);
  * in different threads. The ABI event is triggered every time new data is sent out, and as such the function
  * defined in this file does not need to be explicitly called, only bound in the init function
  */
-// Function to downscale 640x480 YUV image to 200x200 grayscale
-void downscale_and_convert_gray(uint8_t *src_yuv, uint8_t *dst_gray) {
-  int x_ratio = SRC_WIDTH / DST_WIDTH;
-  int y_ratio = SRC_HEIGHT / DST_HEIGHT;
+// // Function to downscale 640x480 YUV image to 200x200 grayscale
+// void downscale_and_convert_gray(uint8_t *src_yuv, uint8_t *dst_gray) {
+//   int x_ratio = SRC_WIDTH / DST_WIDTH;
+//   int y_ratio = SRC_HEIGHT / DST_HEIGHT;
 
-  for (int y = 0; y < DST_HEIGHT; y++) {
-      for (int x = 0; x < DST_WIDTH; x++) {
-          int src_x = x * x_ratio;
-          int src_y = y * y_ratio;
-          int src_index = (src_y * SRC_WIDTH + src_x) * 2;  // YUV422 format (Y, U, Y, V)
+//   for (int y = 0; y < DST_HEIGHT; y++) {
+//       for (int x = 0; x < DST_WIDTH; x++) {
+//           int src_x = x * x_ratio;
+//           int src_y = y * y_ratio;
+//           int src_index = (src_y * SRC_WIDTH + src_x) * 2;  // YUV422 format (Y, U, Y, V)
 
-          // Extract grayscale from Y component
-          dst_gray[y * DST_WIDTH + x] = src_yuv[src_index];  // Use Y component only
-      }
-  }
-}
+//           // Extract grayscale from Y component
+//           dst_gray[y * DST_WIDTH + x] = src_yuv[src_index];  // Use Y component only
+//       }
+//   }
+// }
 
-void normalize_image(uint8_t *gray_img, float *normalized_img) {
-  for (int i = 0; i < DST_WIDTH * DST_HEIGHT; i++) {
-      normalized_img[i] = gray_img[i] / 255.0f;  // Normalize to [0,1]
-  }
-}
+// void normalize_image(uint8_t *gray_img, float *normalized_img) {
+//   for (int i = 0; i < DST_WIDTH * DST_HEIGHT; i++) {
+//       normalized_img[i] = gray_img[i] / 255.0f;  // Normalize to [0,1]
+//   }
+// }
+
 
 // float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
 // downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
 // normalize_image(grayscale_image, dronet_input);
 
-/*
- * Initialisation function, setting the colour filter, random seed and heading_increment
- */
-void dronet_controller_init(void)
-{
-  // Initialise random values
-  srand(time(NULL));
-  chooseRandomIncrementAvoidance();
+// /*
+//  * Initialisation function, setting the colour filter, random seed and heading_increment
+//  */
+// void dronet_controller_init(void)
+// {
+//   // Initialise random values
+//   srand(time(NULL));
+//   chooseRandomIncrementAvoidance();
 
-  // bind our colorfilter callbacks to receive the color filter outputs
-  // AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
-}
+//   // bind our colorfilter callbacks to receive the color filter outputs
+//   // AbiBindMsgVISUAL_DETECTION(ORANGE_AVOIDER_VISUAL_DETECTION_ID, &color_detection_ev, color_detection_cb);
+// }
 
-/*
- * Function that checks it is safe to move forwards, and then moves a waypoint forward or changes the heading
- */
-void dronet_controller_periodic(void)
-{
-  // only evaluate our state machine if we are flying
-  if(!autopilot_in_flight()){
-    return;
-  }
-    // Downscale and normalize input for DroNet
-    float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
-    downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
-    normalize_image(grayscale_image, dronet_input);
+// /*
+//  * Function that checks it is safe to move forwards, and then moves a waypoint forward or changes the heading
+//  */
+// void dronet_controller_periodic(void)
+// {
+//   // only evaluate our state machine if we are flying
+//   if(!autopilot_in_flight()){
+//     return;
+//   }
+//     // Downscale and normalize input for DroNet
+//     float dronet_input[DST_WIDTH * DST_HEIGHT];  // CNN input buffer
+//     downscale_and_convert_gray(raw_camera_buffer, grayscale_image);
+//     normalize_image(grayscale_image, dronet_input);
 
-    // Run DroNet inference
-    float steering_angle, collision_prob;
+//     // Run DroNet inference
+//     float steering_angle, collision_prob;
 
-    float input_tensor[1][200][200][1];
-    for (int i = 0; i < 200; i++) {
-        for (int j = 0; j < 200; j++) {
-            input_tensor[0][i][j][0] = dronet_input[i * 200 + j];
-        }
-    }
+//     float input_tensor[1][200][200][1];
+//     for (int i = 0; i < 200; i++) {
+//         for (int j = 0; j < 200; j++) {
+//             input_tensor[0][i][j][0] = dronet_input[i * 200 + j];
+//         }
+//     }
 
-    float steering_output[1][1];
-    float collision_output[1][1];
+//     float steering_output[1][1];
+//     float collision_output[1][1];
 
-    entry(input_tensor, steering_output, collision_output);
+//     entry(input_tensor, steering_output, collision_output);
 
-    steering_angle = steering_output[0][0];
-    collision_prob = collision_output[0][0];
+//     steering_angle = steering_output[0][0];
+//     collision_prob = collision_output[0][0];
 
-    // entry(dronet_input, &steering_angle, &collision_prob);
+//     // entry(dronet_input, &steering_angle, &collision_prob);
 
-    if (isnan(steering_angle) || isnan(collision_prob)) {
-        VERBOSE_PRINT("Invalid DroNet output! Using last known good values.\n");
-        steering_angle = last_steering_angle;
-        collision_prob = last_collision_prob;
-    } else {
-        last_steering_angle = steering_angle;
-        last_collision_prob = collision_prob;
-    }
+//     if (isnan(steering_angle) || isnan(collision_prob)) {
+//         VERBOSE_PRINT("Invalid DroNet output! Using last known good values.\n");
+//         steering_angle = last_steering_angle;
+//         collision_prob = last_collision_prob;
+//     } else {
+//         last_steering_angle = steering_angle;
+//         last_collision_prob = collision_prob;
+//     }
     
-    // Convert steering angle to heading
-    float theta_k = (1.0f - BETA) * last_output + BETA * (steering_angle * (M_PI / 2.0f));
-    float heading_increment = K_YAW * theta_k;
+//     // Convert steering angle to heading
+//     float theta_k = (1.0f - BETA) * last_output + BETA * (steering_angle * (M_PI / 2.0f));
+//     float heading_increment = K_YAW * theta_k;
 
-    // Smooth out yaw rate changes
-    heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
+//     // Smooth out yaw rate changes
+//     heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
 
-    increase_nav_heading(heading_increment);
+//     increase_nav_heading(heading_increment);
 
-    // Convert collision probability to velocity
-    float velocity = (1.0f - ALPHA) * last_output + ALPHA * (1.0f - collision_prob) * V_MAX;
-    float move_distance = K_V * velocity * DT;
+//     // Convert collision probability to velocity
+//     float velocity = (1.0f - ALPHA) * last_output + ALPHA * (1.0f - collision_prob) * V_MAX;
+//     float move_distance = K_V * velocity * DT;
 
-    // Limit maximum movement distance to avoid instability
-    move_distance = fminf(move_distance, V_MAX * DT);
+//     // Limit maximum movement distance to avoid instability
+//     move_distance = fminf(move_distance, V_MAX * DT);
 
-    moveWaypointForward(WP_TRAJECTORY, move_distance);
+//     moveWaypointForward(WP_TRAJECTORY, move_distance);
 
-  // compute current color thresholds
-  int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
+//   // compute current color thresholds
+//   int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
 
-  VERBOSE_PRINT("Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
+//   VERBOSE_PRINT("Color_count: %d  threshold: %d state: %d \n", color_count, color_count_threshold, navigation_state);
 
-  // update our safe confidence using color threshold
-  if(color_count < color_count_threshold){
-    obstacle_free_confidence++;
-  } else {
-    obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
-  }
+//   // update our safe confidence using color threshold
+//   if(color_count < color_count_threshold){
+//     obstacle_free_confidence++;
+//   } else {
+//     obstacle_free_confidence -= 2;  // be more cautious with positive obstacle detections
+//   }
 
-  // bound obstacle_free_confidence
-  Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
+//   // bound obstacle_free_confidence
+//   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
-  float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
+//   float moveDistance = fminf(maxDistance, 0.2f * obstacle_free_confidence);
 
-  switch (navigation_state){
-    case SAFE:
-      // Move waypoint forward
-      moveWaypointForward(WP_TRAJECTORY, 1.5f * moveDistance);
-      if (!InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
-        navigation_state = OUT_OF_BOUNDS;
-      } else if (obstacle_free_confidence == 0){
-        navigation_state = OBSTACLE_FOUND;
-      } else {
-        moveWaypointForward(WP_GOAL, moveDistance);
-        moveWaypointForward(WP_RETREAT, -1.0f * moveDistance);
-      }
+//   switch (navigation_state){
+//     case SAFE:
+//       // Move waypoint forward
+//       moveWaypointForward(WP_TRAJECTORY, 1.5f * moveDistance);
+//       if (!InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
+//         navigation_state = OUT_OF_BOUNDS;
+//       } else if (obstacle_free_confidence == 0){
+//         navigation_state = OBSTACLE_FOUND;
+//       } else {
+//         moveWaypointForward(WP_GOAL, moveDistance);
+//         moveWaypointForward(WP_RETREAT, -1.0f * moveDistance);
+//       }
 
-      break;
-    case OBSTACLE_FOUND:
-      // stop
-      waypoint_move_here_2d(WP_GOAL);
-      waypoint_move_here_2d(WP_RETREAT);
-      waypoint_move_here_2d(WP_TRAJECTORY);
+//       break;
+//     case OBSTACLE_FOUND:
+//       // stop
+//       waypoint_move_here_2d(WP_GOAL);
+//       waypoint_move_here_2d(WP_RETREAT);
+//       waypoint_move_here_2d(WP_TRAJECTORY);
 
-      // randomly select new search direction
-      chooseRandomIncrementAvoidance();
+//       // randomly select new search direction
+//       chooseRandomIncrementAvoidance();
 
-      navigation_state = SEARCH_FOR_SAFE_HEADING;
+//       navigation_state = SEARCH_FOR_SAFE_HEADING;
 
-      break;
-    case SEARCH_FOR_SAFE_HEADING:
-      increase_nav_heading(heading_increment);
+//       break;
+//     case SEARCH_FOR_SAFE_HEADING:
+//       increase_nav_heading(heading_increment);
 
-      // make sure we have a couple of good readings before declaring the way safe
-      if (obstacle_free_confidence >= 2){
-        navigation_state = SAFE;
-      }
-      break;
-    case OUT_OF_BOUNDS:
-      increase_nav_heading(heading_increment);
-      moveWaypointForward(WP_TRAJECTORY, 1.5f);
-      moveWaypointForward(WP_RETREAT, -1.0f);
+//       // make sure we have a couple of good readings before declaring the way safe
+//       if (obstacle_free_confidence >= 2){
+//         navigation_state = SAFE;
+//       }
+//       break;
+//     case OUT_OF_BOUNDS:
+//       increase_nav_heading(heading_increment);
+//       moveWaypointForward(WP_TRAJECTORY, 1.5f);
+//       moveWaypointForward(WP_RETREAT, -1.0f);
 
-      if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
-        // add offset to head back into arena
-        increase_nav_heading(heading_increment);
+//       if (InsideObstacleZone(WaypointX(WP_TRAJECTORY),WaypointY(WP_TRAJECTORY))){
+//         // add offset to head back into arena
+//         increase_nav_heading(heading_increment);
 
-        // reset safe counter
-        obstacle_free_confidence = 0;
+//         // reset safe counter
+//         obstacle_free_confidence = 0;
 
-        // ensure direction is safe before continuing
-        navigation_state = SEARCH_FOR_SAFE_HEADING;
-      }
-      break;
-    default:
-      break;
-  }
-  return;
-}
+//         // ensure direction is safe before continuing
+//         navigation_state = SEARCH_FOR_SAFE_HEADING;
+//       }
+//       break;
+//     default:
+//       break;
+//   }
+//   return;
+// }
 
 /*
  * Increases the NAV heading. Assumes heading is an INT32_ANGLE. It is bound in this function.

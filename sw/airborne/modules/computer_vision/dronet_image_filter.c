@@ -5,6 +5,7 @@
 #include "modules/computer_vision/cv.h"
 #include "modules/computer_vision/lib/vision/image.h"
 #include "state.h"
+#include "modules/core/abi.h"
 
 #define SRC_WIDTH  640  // Original camera resolution width
 #define SRC_HEIGHT 480  // Original camera resolution height
@@ -12,23 +13,35 @@
 #define DST_HEIGHT 200  // Downscaled height
 #define DOWNSAMPLE_FACTOR 4  // Factor to downscale the image
 
-#ifndef COLORFILTER_FPS
-#define COLORFILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
+#ifndef DRONET_IMAGE_FILTER_FPS
+#define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
 #endif
-PRINT_CONFIG_VAR(COLORFILTER_FPS)
+PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
+
+// ABI message definition
+#ifndef DRONET_IMAGE_FILTER_ID
+#define DRONET_IMAGE_FILTER_ID 1
+#endif
 
 
 // Mutex for thread safety
 static pthread_mutex_t mutex;
-static struct image_t gray_image;
 static struct image_t downscaled_image;
+static struct image_t gray_image;
 static float normalized_image[DST_WIDTH * DST_HEIGHT];
+static bool image_updated = false;  // Flag to check if a new frame is processed
 
-// Image processing callback function
+
+// ABI event
+static abi_event dronet_image_ev;
+
+/**
+ * Process image from the front camera
+ */
 static struct image_t *process_image(struct image_t *img) {
   pthread_mutex_lock(&mutex);
   
-  // Ensure the output images are properly allocated
+  // Allocate memory for the processed image
   image_create(&downscaled_image, DST_WIDTH, DST_HEIGHT, IMAGE_YUV422);
   image_create(&gray_image, DST_WIDTH, DST_HEIGHT, IMAGE_GRAYSCALE);
 
@@ -43,15 +56,33 @@ static struct image_t *process_image(struct image_t *img) {
       normalized_image[i] = gray_image.buf[i] / 255.0f;
   }
 
+  // Set flag to indicate new image data is available
+  image_updated = true;
+
   pthread_mutex_unlock(&mutex);
   
-  return &normalized_image;  // Return the processed grayscale, normalized image
+  return &gray_image;  // Return the processed grayscale image
 }
 
-// Initialization function
+/**
+ * Initialization function for the Dronet Image Filter
+ */
 void dronet_image_filter_init(void) {
-    pthread_mutex_init(&mutex, NULL);
-    
-    // Register video processing callback
-    cv_add_to_device(&front_camera, process_image, COLORFILTER_FPS, 0);
+  pthread_mutex_init(&mutex, NULL);
+  
+  // Register video processing callback
+  cv_add_to_device(&front_camera, process_image, DRONET_IMAGE_FILTER_FPS, 0);
+}
+
+/**
+ * Periodic function to send processed image data via ABI messaging
+ */
+void dronet_image_filter_periodic(void) {
+  pthread_mutex_lock(&mutex);
+  if (image_updated) {
+      // Send processed image data via ABI messaging
+      AbiSendMsgDRONET_IMAGE(DRONET_IMAGE_FILTER_ID, normalized_image);
+      image_updated = false;  // Reset flag after sending
+  }
+  pthread_mutex_unlock(&mutex);
 }
