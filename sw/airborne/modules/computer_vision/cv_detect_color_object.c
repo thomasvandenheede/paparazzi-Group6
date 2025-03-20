@@ -60,6 +60,8 @@ uint8_t cod_cb_max1 = 0;
 uint8_t cod_cr_min1 = 0;
 uint8_t cod_cr_max1 = 0;
 
+uint8_t fill_y_limit = 0;
+
 uint8_t cod_lum_min2 = 0;
 uint8_t cod_lum_max2 = 0;
 uint8_t cod_cb_min2 = 0;
@@ -85,6 +87,49 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max);
 
+struct image_t *process_image(struct image_t *img, uint8_t lum_min, uint8_t lum_max, 
+                              uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, uint8_t cr_max, 
+                              uint8_t fill_y_limit, bool draw) {
+    int IMAGE_WIDTH = img->w;  
+    int IMAGE_HEIGHT = img->h;
+    uint8_t *buffer = img->buf;    
+
+    int LIMIT_Y = fill_y_limit;
+
+    for (int x = 0; x < IMAGE_WIDTH; x++) {
+        bool detected_above = false;  
+
+        for (int y = LIMIT_Y; y < IMAGE_HEIGHT; y++) {
+            uint8_t *yp, *up, *vp;
+            int index = (y * 2 * IMAGE_WIDTH + 2 * x); 
+
+            if (x % 2 == 0) {
+                up = &buffer[index];       // U
+                yp = &buffer[index + 1];   // Y1
+                vp = &buffer[index + 2];   // V
+            } else {
+                up = &buffer[index - 2];   // U
+                vp = &buffer[index];       // V
+                yp = &buffer[index + 1];   // Y2
+            }
+
+            // Check if pixel is within the detected color range
+            if ((*yp >= lum_min) && (*yp <= lum_max) &&
+                (*up >= cb_min) && (*up <= cb_max) &&
+                (*vp >= cr_min) && (*vp <= cr_max)) {
+                detected_above = true;
+            }
+
+            // If a detected pixel is above, apply the coloring
+            if (detected_above && draw) {
+                *yp = 255;  // Make pixel brighter (same logic as in find_object_centroid)
+            }
+        }
+    }
+
+    return img;
+}
+                              
 /*
  * object_detector
  * @param img - input image to process
@@ -125,6 +170,9 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter)
 
   // Filter and find centroid
   uint32_t count = find_object_centroid(img, &x_c, &y_c, draw, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max);
+  
+  img = process_image(img, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max, y_c, draw);
+
   VERBOSE_PRINT("Color count %d: %u, threshold %u, x_c %d, y_c %d\n", camera, object_count, count_threshold, x_c, y_c);
   VERBOSE_PRINT("centroid %d: (%d, %d) r: %4.2f a: %4.2f\n", camera, x_c, y_c,
         hypotf(x_c, y_c) / hypotf(img->w * 0.5, img->h * 0.5), RadOfDeg(atan2f(y_c, x_c)));
@@ -163,6 +211,7 @@ void color_object_detector_init(void)
   cod_cb_max1 = COLOR_OBJECT_DETECTOR_CB_MAX1;
   cod_cr_min1 = COLOR_OBJECT_DETECTOR_CR_MIN1;
   cod_cr_max1 = COLOR_OBJECT_DETECTOR_CR_MAX1;
+  fill_y_limit = FILL_Y_LIMIT;
 #endif
 #ifdef COLOR_OBJECT_DETECTOR_DRAW1
   cod_draw1 = COLOR_OBJECT_DETECTOR_DRAW1;
