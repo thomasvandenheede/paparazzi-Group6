@@ -46,9 +46,13 @@ static abi_event dronet_image_ev __attribute__((unused));
  * Process image from the front camera
  */
 static struct image_t *process_image(struct image_t *img, uint8_t camera_id) {
-/*
-  // Allocate memory for the processed image
+  (void)camera_id;
+  if (!img) return NULL; // Safety check
+
+  // Create downscaled image
   image_create(&downscaled_image, DST_WIDTH, DST_HEIGHT, IMAGE_YUV422);
+
+  // Create grayscale image
   image_create(&gray_image, DST_WIDTH, DST_HEIGHT, IMAGE_GRAYSCALE);
 
   // Downsample image
@@ -58,19 +62,22 @@ static struct image_t *process_image(struct image_t *img, uint8_t camera_id) {
   image_to_grayscale(&downscaled_image, &gray_image);
 
   // Normalize grayscale image
-  uint8_t *gray_buffer = (uint8_t *)gray_image.buf;
+  // uint8_t *gray_buffer = (uint8_t *)gray_image.buf;
+  uint8_t *gray_buffer = gray_image.buf;
   for (int i = 0; i < DST_WIDTH * DST_HEIGHT; i++) {
       normalized_image[i] = gray_buffer[i] / 255.0f;
   }
 
   // Set flag to indicate new image data is available
-  
-*/
   pthread_mutex_lock(&mutex);
   // export results
   printf("Test\n");
   image_updated = true;
   pthread_mutex_unlock(&mutex);
+
+  // Clean up allocated images to avoid memory leaks
+  image_free(&downscaled_image);
+  image_free(&gray_image);
   
   return img; //&gray_image;  // Return the processed grayscale image
 }
