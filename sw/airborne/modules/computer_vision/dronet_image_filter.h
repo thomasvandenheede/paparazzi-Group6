@@ -9,29 +9,21 @@
 #define DST_WIDTH  200  // Downscaled width
 #define DST_HEIGHT 200  // Downscaled height
 
-// Function declarations
-/**
- * @brief Initializes the Dronet Image Filter module.
- */
 extern void dronet_image_filter_init(void);
-
-/**
- * @brief Periodic function to send processed image data via ABI messaging.
- */
 extern void dronet_image_filter_periodic(void);
 
-// ABI message ID
-#ifndef DRONET_IMAGE_FILTER_ID
-#define DRONET_IMAGE_FILTER_ID 1
-#endif
+// // ABI message ID
+// #ifndef DRONET_IMAGE_FILTER_ID
+// #define DRONET_IMAGE_FILTER_ID 1
+// #endif
 
-// ABI message definitions
-#define ABI_BROADCAST 255
-#define ABI_DRONET_IMAGE_MSG 1
+// // ABI message definitions
+// #define ABI_BROADCAST 255
+// #define ABI_DRONET_IMAGE_MSG 1
 
-// ABI message function declarations
-#define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
-#define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
+// // ABI message function declarations
+// #define AbiBindMsgVISUAL_DETECTION(steering_angle, collision_prob=]) {}
+// #define AbiBindMsgVISUAL_DETECTION(sender_id, cb, callback) {}
 
 
 #endif // DRONET_IMAGE_FILTER_H

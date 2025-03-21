@@ -76,18 +76,28 @@ static struct image_t *process_image(struct image_t *img, uint8_t camera_id) {
       normalized_image[i] = gray_buffer[i] / 255.0f;
   }
 
+  // DroNet inference
+  float steering_out[1][1];
+  float collision_out[1][1];
+  entry(input_tensor, steering_out, collision_out);  // DroNet model function
+
+
+
   // Set flag to indicate new image data is available
   pthread_mutex_lock(&mutex);
+
+  steering_angle = steering_out[0][0];
+  collision_prob = collision_out[0][0];
+  image_updated = true;
   // export results
   printf("Test\n");
-  image_updated = true;
   pthread_mutex_unlock(&mutex);
 
   // Clean up allocated images to avoid memory leaks
   image_free(&downscaled_image);
   image_free(&gray_image);
   
-  return img; //&gray_image;  // Return the processed grayscale image
+  return &gray_image; //&gray_image;  // Return the processed grayscale image
 }
 
 /**
@@ -107,7 +117,7 @@ void dronet_image_filter_periodic(void) {
   pthread_mutex_lock(&mutex);
   if (image_updated) {
       // Send processed image data via ABI messaging
-      AbiSendMsgDRONET_IMAGE(DRONET_IMAGE_FILTER_ID, normalized_image);
+      AbiSendMsgVISUAL_DETECTION(DRONET_IMAGE_FILTER_ID, steering_angle, collision_prob);
       image_updated = false;  // Reset flag after sending
   }
   pthread_mutex_unlock(&mutex);

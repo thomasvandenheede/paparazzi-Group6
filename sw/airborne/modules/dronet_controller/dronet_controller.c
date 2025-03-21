@@ -30,12 +30,12 @@
 
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
-#include "dronet.h"
+#include "dronet.c"
 
 #define ABI_BROADCAST 255
 #define ABI_DRONET_IMAGE_MSG 1
-#define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
-#define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
+#define AbiBindMsgVISUAL_DETECTION(sender_id, steering_angle, collision_prob) {}
+#define AbiBindMsgVISUAL_DETECTION(sender_id, cb, callback) {}
 
 #ifndef VERBOSE_PRINT
 #define VERBOSE_PRINT(args...) printf(args)
@@ -115,10 +115,24 @@ static uint8_t chooseRandomIncrementAvoidance(void);
 static float last_theta_k = 0.0f;  
 static float last_velocity = 0.0f;  
 
+
+float s_k = 0.f;
+float p = 1.f;
+
+#ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID
+#define ORANGE_AVOIDER_VISUAL_DETECTION_ID ABI_BROADCAST
+#endif
+static abi_event dronet_image_ev;
+static void dronet_image_cb(float steering_angle, float collision_prob)
+{
+  s_k = steering_angle;
+  p = collision_prob;
+}
+
 // Initialization function
 void dronet_controller_init(void) {
   // Bind the ABI message to receive image data
-  AbiBindMsgDRONET_IMAGE(DRONET_IMAGE_FILTER_ID, &dronet_image_ev, dronet_image_cb);
+  AbiBindMsgVISUAL_DETECTION(DRONET_IMAGE_FILTER_ID, &dronet_image_ev, dronet_image_cb);
 }
 
 
@@ -127,34 +141,34 @@ void dronet_controller_periodic(void) {
         return;
     }
 
-    // Run DroNet inference
-    float steering_angle, collision_prob;
-    // float steering_angle[1];
-    // float collision_prob[1];
-    float input_tensor[1][200][200][1];
+    // // Run DroNet inference
+    // float steering_angle, collision_prob;
+    // // float steering_angle[1];
+    // // float collision_prob[1];
+    // float input_tensor[1][200][200][1];
 
-    // Convert received image data into DroNet input format
-    for (int i = 0; i < 200; i++) {
-        for (int j = 0; j < 200; j++) {
-            input_tensor[0][i][j][0] = normalized_image[i * 200 + j];
-        }
-    }
-
-    float steering_output[1][1] = {{0.0f}};
-    float collision_output[1][1] = {{1.0f}}; // Assume worst-case (maximum collision probability)
-
-    entry(input_tensor, steering_output, collision_output);
-
-    // if (steering_angle != NULL && collision_prob != NULL) {
-    //   entry(input_tensor, &steering_angle, &collision_prob);
-    // } else {
-    //   fprintf(stderr, "ONNX output is NULL!\n");
+    // // Convert received image data into DroNet input format
+    // for (int i = 0; i < 200; i++) {
+    //     for (int j = 0; j < 200; j++) {
+    //         input_tensor[0][i][j][0] = normalized_image[i * 200 + j];
+    //     }
     // }
 
-    steering_angle = steering_output[0][0];
-    collision_prob = collision_output[0][0];
+    // float steering_output[1][1] = {{0.0f}};
+    // float collision_output[1][1] = {{1.0f}}; // Assume worst-case (maximum collision probability)
 
-    float theta_k = (1.0f - BETA) * last_theta_k + BETA * (steering_angle * (M_PI / 2.0f));
+    // entry(input_tensor, steering_output, collision_output);
+
+    // // if (steering_angle != NULL && collision_prob != NULL) {
+    // //   entry(input_tensor, &steering_angle, &collision_prob);
+    // // } else {
+    // //   fprintf(stderr, "ONNX output is NULL!\n");
+    // // }
+
+    // steering_angle = steering_output[0][0];
+    // collision_prob = collision_output[0][0];
+
+    float theta_k = (1.0f - BETA) * last_theta_k + BETA * (s_k * (M_PI / 2.0f));
     last_theta_k = theta_k;  // Update stored value
 
     // Convert steering angle to heading change
@@ -164,7 +178,7 @@ void dronet_controller_periodic(void) {
     heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
     increase_nav_heading(heading_increment);
 
-    float velocity = (1.0f - ALPHA) * last_velocity + ALPHA * (1.0f - collision_prob) * V_MAX;
+    float velocity = (1.0f - ALPHA) * last_velocity + ALPHA * (1.0f - p) * V_MAX;
     last_velocity = velocity;  // Update stored value
 
     float move_distance = K_V * velocity * DT;
