@@ -32,6 +32,15 @@
 #include "generated/flight_plan.h"
 #include "dronet.c"
 
+#define ABI_BROADCAST 255
+#define ABI_DRONET_IMAGE_MSG 1
+#define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
+#define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
+
+#ifndef VERBOSE_PRINT
+#define VERBOSE_PRINT(args...) printf(args)
+#endif
+
 extern int32_t color_count;
 extern enum navigation_state_t navigation_state;
 extern float obstacle_free_confidence;
@@ -66,20 +75,27 @@ extern float heading_increment;
 
 // Global variables
 static float normalized_image[DST_WIDTH * DST_HEIGHT];
-static abi_event dronet_image_ev;
+// static abi_event dronet_image_ev;
 
 // ABI callback function to receive processed image data
-static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float *image_data) {
-  memcpy(normalized_image, image_data, sizeof(normalized_image));
-}
+// static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float *image_data) {
+//   memcpy(normalized_image, image_data, sizeof(normalized_image));
+// }
 
 // // Global variables for image processing
 // uint8_t raw_camera_buffer[SRC_WIDTH * SRC_HEIGHT * 2];
 // uint8_t grayscale_image[DST_WIDTH * DST_HEIGHT];
 
-static float last_steering_angle = 0;
-static float last_collision_prob = 0;
-static float last_output = 0;
+// static float last_steering_angle = 0;
+// static float last_collision_prob = 0;
+// static float last_output = 0;
+
+enum navigation_state_t {
+  SAFE,
+  OBSTACLE_FOUND,
+  SEARCH_FOR_SAFE_HEADING,
+  OUT_OF_BOUNDS
+};
 
 // int navigation_state = SAFE;
 enum navigation_state_t navigation_state = SAFE;
@@ -113,6 +129,8 @@ void dronet_controller_periodic(void) {
 
     // Run DroNet inference
     float steering_angle, collision_prob;
+    // float steering_angle[1];
+    // float collision_prob[1];
     float input_tensor[1][200][200][1];
 
     // Convert received image data into DroNet input format
@@ -122,10 +140,16 @@ void dronet_controller_periodic(void) {
         }
     }
 
-    float steering_output[1][1];
-    float collision_output[1][1];
+    float steering_output[1][1] = {{0.0f}};
+    float collision_output[1][1] = {{1.0f}}; // Assume worst-case (maximum collision probability)
 
     entry(input_tensor, steering_output, collision_output);
+
+    // if (steering_angle != NULL && collision_prob != NULL) {
+    //   entry(input_tensor, &steering_angle, &collision_prob);
+    // } else {
+    //   fprintf(stderr, "ONNX output is NULL!\n");
+    // }
 
     steering_angle = steering_output[0][0];
     collision_prob = collision_output[0][0];

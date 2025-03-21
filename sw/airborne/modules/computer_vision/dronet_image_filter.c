@@ -6,6 +6,7 @@
 #include "modules/computer_vision/lib/vision/image.h"
 #include "state.h"
 #include "modules/core/abi.h"
+#include "dronet_image_filter.h"
 
 #define SRC_WIDTH  640  // Original camera resolution width
 #define SRC_HEIGHT 480  // Original camera resolution height
@@ -23,6 +24,12 @@ PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
 #define DRONET_IMAGE_FILTER_ID 1
 #endif
 
+// Define ABI message functionality
+#define ABI_BROADCAST 255
+#define ABI_DRONET_IMAGE_MSG 1
+// Define necessary ABI functions
+#define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
+#define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
 
 // Mutex for thread safety
 static pthread_mutex_t mutex;
@@ -33,7 +40,7 @@ static bool image_updated = false;  // Flag to check if a new frame is processed
 
 
 // ABI event
-static abi_event dronet_image_ev;
+static abi_event dronet_image_ev __attribute__((unused));
 
 /**
  * Process image from the front camera
@@ -52,8 +59,9 @@ static struct image_t *process_image(struct image_t *img) {
   image_to_grayscale(&downscaled_image, &gray_image);
 
   // Normalize grayscale image
+  uint8_t *gray_buffer = (uint8_t *)gray_image.buf;
   for (int i = 0; i < DST_WIDTH * DST_HEIGHT; i++) {
-      normalized_image[i] = gray_image.buf[i] / 255.0f;
+      normalized_image[i] = gray_buffer[i] / 255.0f;
   }
 
   // Set flag to indicate new image data is available

@@ -1,4 +1,4 @@
-<module name="dronet_image_filter">
+<module name="dronet_image_filter" dir="computer_vision">
   <doc>
     <description>
       This module captures, processes, and normalizes images from the drone's front camera.
