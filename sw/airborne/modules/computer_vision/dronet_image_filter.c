@@ -38,6 +38,14 @@ static struct image_t gray_image;
 static float normalized_image[DST_WIDTH * DST_HEIGHT];
 static volatile bool image_updated = false;  // Flag to check if a new frame is processed
 
+// define global variables
+struct infer_model {
+  double s_k;
+  double p;
+  bool updated;
+};
+struct infer_model output;
+
 
 // ABI event
 static abi_event dronet_image_ev __attribute__((unused));
