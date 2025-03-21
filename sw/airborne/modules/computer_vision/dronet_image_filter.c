@@ -36,7 +36,7 @@ static pthread_mutex_t mutex;
 static struct image_t downscaled_image;
 static struct image_t gray_image;
 static float normalized_image[DST_WIDTH * DST_HEIGHT];
-static bool image_updated = false;  // Flag to check if a new frame is processed
+static volatile bool image_updated = false;  // Flag to check if a new frame is processed
 
 
 // ABI event
@@ -45,9 +45,8 @@ static abi_event dronet_image_ev __attribute__((unused));
 /**
  * Process image from the front camera
  */
-static struct image_t *process_image(struct image_t *img) {
-  pthread_mutex_lock(&mutex);
-  
+static struct image_t *process_image(struct image_t *img, uint8_t camera_id) {
+/*
   // Allocate memory for the processed image
   image_create(&downscaled_image, DST_WIDTH, DST_HEIGHT, IMAGE_YUV422);
   image_create(&gray_image, DST_WIDTH, DST_HEIGHT, IMAGE_GRAYSCALE);
@@ -65,11 +64,15 @@ static struct image_t *process_image(struct image_t *img) {
   }
 
   // Set flag to indicate new image data is available
+  
+*/
+  pthread_mutex_lock(&mutex);
+  // export results
+  printf("Test\n");
   image_updated = true;
-
   pthread_mutex_unlock(&mutex);
   
-  return &gray_image;  // Return the processed grayscale image
+  return img; //&gray_image;  // Return the processed grayscale image
 }
 
 /**

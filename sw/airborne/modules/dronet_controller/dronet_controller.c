@@ -30,7 +30,7 @@
 
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
-#include "dronet.c"
+#include "dronet.h"
 
 #define ABI_BROADCAST 255
 #define ABI_DRONET_IMAGE_MSG 1
