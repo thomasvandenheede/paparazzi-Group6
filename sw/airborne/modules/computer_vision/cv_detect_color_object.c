@@ -87,49 +87,83 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
                               uint8_t cb_min, uint8_t cb_max,
                               uint8_t cr_min, uint8_t cr_max);
 
-struct image_t *process_image(struct image_t *img, uint8_t lum_min, uint8_t lum_max, 
-                              uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, uint8_t cr_max, 
-                              uint8_t fill_y_limit, bool draw) {
+struct image_t *process_image(struct image_t *img, uint8_t lum_min, 
+  uint8_t lum_max, uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, 
+  uint8_t cr_max, uint8_t fill_y_limit, bool draw) {
+  
     int IMAGE_WIDTH = img->w;  
     int IMAGE_HEIGHT = img->h;
     uint8_t *buffer = img->buf;    
 
-    int LIMIT_Y = fill_y_limit;
+    //int LIMIT = (int) fill_y_limit;
+    int LIMIT = 102;
+    int RED_LINE_THICKNESS = 3;
 
-    for (int x = 0; x < IMAGE_WIDTH; x++) {
-        bool detected_above = false;  
 
-        for (int y = LIMIT_Y; y < IMAGE_HEIGHT; y++) {
-            uint8_t *yp, *up, *vp;
-            int index = (y * 2 * IMAGE_WIDTH + 2 * x); 
+  // Fill from Limit down to Image border
+  for (int y = 0; y < IMAGE_HEIGHT; y++) {  // Process per column
+    bool detected_right = false;
 
-            if (x % 2 == 0) {
-                up = &buffer[index];       // U
-                yp = &buffer[index + 1];   // Y1
-                vp = &buffer[index + 2];   // V
+    for (int x = LIMIT; x >= 0; x--) {  // Scan from right to left
+        uint8_t *yp, *up, *vp;
+        //int index = x * 2 * IMAGE_WIDTH + 2 * y;  // Swapped indexing for rotated image
+
+        if (x % 2 == 0) {
+          // Even x
+          up = &buffer[y * 2 * img->w + 2 * x];      // U
+          yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y1
+          vp = &buffer[y * 2 * img->w + 2 * x + 2];  // V
+          //yp = &buffer[y * 2 * img->w + 2 * x + 3]; // Y2
+        } else {
+          // Uneven x
+          up = &buffer[y * 2 * img->w + 2 * x - 2];  // U
+          //yp = &buffer[y * 2 * img->w + 2 * x - 1]; // Y1
+          vp = &buffer[y * 2 * img->w + 2 * x];      // V
+          yp = &buffer[y * 2 * img->w + 2 * x + 1];  // Y2
+        }
+
+        if (detected_right && draw) {
+          *yp = 255;  // Brighten
+        }
+
+        if ((*yp >= lum_min) && (*yp <= lum_max) &&
+            (*up >= cb_min) && (*up <= cb_max) &&
+            (*vp >= cr_min) && (*vp <= cr_max)) {
+              *yp = 255;
+              detected_right = true;
+        }
+
+        
+    }
+  }
+
+
+  // Draw vertical black line before fill limit (x = LIMIT - i)
+  if (LIMIT >= RED_LINE_THICKNESS && draw) {
+    for (int i = 0; i < RED_LINE_THICKNESS; i++) {
+        int line_x = LIMIT - 1 - i;
+        if (line_x < 0) break;
+
+        for (int y = 0; y < IMAGE_HEIGHT; y++) {
+            int index = y * 2 * IMAGE_WIDTH + 2 * line_x;
+
+            if (line_x % 2 == 0) {
+                buffer[index + 1] = 0; // Y1
+                buffer[index]     = 0; // Cb
+                buffer[index + 2] = 0; // Cr
             } else {
-                up = &buffer[index - 2];   // U
-                vp = &buffer[index];       // V
-                yp = &buffer[index + 1];   // Y2
-            }
-
-            // Check if pixel is within the detected color range
-            if ((*yp >= lum_min) && (*yp <= lum_max) &&
-                (*up >= cb_min) && (*up <= cb_max) &&
-                (*vp >= cr_min) && (*vp <= cr_max)) {
-                detected_above = true;
-            }
-
-            // If a detected pixel is above, apply the coloring
-            if (detected_above && draw) {
-                *yp = 255;  // Make pixel brighter (same logic as in find_object_centroid)
+                buffer[index + 1] = 0; // Y2
+                buffer[index - 2] = 0;
+                buffer[index]     = 0;
             }
         }
     }
-
-    return img;
+  }
+  return img;
 }
-                              
+      
+  
+
 /*
  * object_detector
  * @param img - input image to process
@@ -211,11 +245,15 @@ void color_object_detector_init(void)
   cod_cb_max1 = COLOR_OBJECT_DETECTOR_CB_MAX1;
   cod_cr_min1 = COLOR_OBJECT_DETECTOR_CR_MIN1;
   cod_cr_max1 = COLOR_OBJECT_DETECTOR_CR_MAX1;
-  fill_y_limit = FILL_Y_LIMIT;
 #endif
 #ifdef COLOR_OBJECT_DETECTOR_DRAW1
   cod_draw1 = COLOR_OBJECT_DETECTOR_DRAW1;
 #endif
+#ifdef FILL_Y_LIMIT
+  fill_y_limit = FILL_Y_LIMIT;
+#endif
+
+
 
   cv_add_to_device(&COLOR_OBJECT_DETECTOR_CAMERA1, object_detector1, COLOR_OBJECT_DETECTOR_FPS1, 0);
 #endif
