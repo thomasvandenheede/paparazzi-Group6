@@ -186,11 +186,10 @@
       <field name="pixel_width"  type="int16_t">Width in pixels</field>
       <field name="pixel_height" type="int16_t">Height in pixels</field>
       <field name="quality"      type="int32_t">Detection quality</field> -->
+      <!-- <field name="extra"        type="int16_t">Extra field for options like detector source etc</field> -->
 
       <field name="steering_angle"      type="float">Steering Angle</field>
       <field name="collision_prob"      type="float">Collision Probability</field>
-
-      <!-- <field name="extra"        type="int16_t">Extra field for options like detector source etc</field> -->
     </message>
 
     <message name="JOYSTICK" id="28">

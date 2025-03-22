@@ -8,117 +8,138 @@
 #include "modules/core/abi.h"
 #include "dronet_image_filter.h"
 
-#define SRC_WIDTH  640  // Original camera resolution width
-#define SRC_HEIGHT 480  // Original camera resolution height
-#define DST_WIDTH  200  // Downscaled width
-#define DST_HEIGHT 200  // Downscaled height
-#define DOWNSAMPLE_FACTOR 4  // Factor to downscale the image
+
+// // ABI message definition
+// #ifndef DRONET_IMAGE_FILTER_ID
+// #define DRONET_IMAGE_FILTER_ID 1
+// #endif
+
+// // Define ABI message functionality
+// #define ABI_BROADCAST 255
+// #define ABI_DRONET_IMAGE_MSG 1
+
+// // Define necessary ABI functions
+// #define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
+// #define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
+
+// // ABI event
+// static abi_event dronet_image_ev __attribute__((unused));
+
+
 
 #ifndef DRONET_IMAGE_FILTER_FPS
 #define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
 #endif
 PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
 
-// ABI message definition
-#ifndef DRONET_IMAGE_FILTER_ID
-#define DRONET_IMAGE_FILTER_ID 1
-#endif
-
-// Define ABI message functionality
-#define ABI_BROADCAST 255
-#define ABI_DRONET_IMAGE_MSG 1
-// Define necessary ABI functions
-#define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
-#define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
-
 // Mutex for thread safety
 static pthread_mutex_t mutex;
-static struct image_t downscaled_image;
-static struct image_t gray_image;
-static float normalized_image[DST_WIDTH * DST_HEIGHT];
-static volatile bool image_updated = false;  // Flag to check if a new frame is processed
 
-// define global variables
-struct infer_model {
-  double s_k;
-  double p;
+// Define global variables
+struct nn_object_t {
+  float s_k;
+  float p;
   bool updated;
 };
-struct infer_model output;
+struct nn_object_t global_output;
 
+#define IMG_WIDTH 200
+#define IMG_HEIGHT 200
+#define INV_255 (1.0f / 255.0f)
 
-// ABI event
-static abi_event dronet_image_ev __attribute__((unused));
+// Declare tensor as 4D array: [batch][height][width][channels]
+static float input_tensor[1][IMG_HEIGHT][IMG_WIDTH][1];
 
-/**
- * Process image from the front camera
- */
-static struct image_t *process_image(struct image_t *img, uint8_t camera_id) {
-  (void)camera_id;
-  if (!img) return NULL; // Safety check
-
-  // Create downscaled image
-  image_create(&downscaled_image, DST_WIDTH, DST_HEIGHT, IMAGE_YUV422);
-
-  // Create grayscale image
-  image_create(&gray_image, DST_WIDTH, DST_HEIGHT, IMAGE_GRAYSCALE);
-
-  // Downsample image
-  image_yuv422_downsample(img, &downscaled_image, DOWNSAMPLE_FACTOR);
-
-  // Convert downscaled YUV to grayscale
-  image_to_grayscale(&downscaled_image, &gray_image);
-
-  // Normalize grayscale image
-  // uint8_t *gray_buffer = (uint8_t *)gray_image.buf;
-  uint8_t *gray_buffer = gray_image.buf;
-  for (int i = 0; i < DST_WIDTH * DST_HEIGHT; i++) {
-      normalized_image[i] = gray_buffer[i] / 255.0f;
+void preprocess_image(struct image_t *img)
+{
+  if (!img) {
+    printf("Image invalid!\n");
+    return; // Safety check
   }
 
-  // DroNet inference
-  float steering_out[1][1];
-  float collision_out[1][1];
-  entry(input_tensor, steering_out, collision_out);  // DroNet model function
+  // Safety check to guarantee consistent image dimensions
+  if (img->w != IMG_WIDTH || img->h != IMG_HEIGHT) {
+    printf("Unexpected image size!\n");
+    return;
+  }
+
+  uint8_t *buffer = img->buf;
+
+  for (int y = 0; y < img->h; y++) {
+    for (int x = 0; x < img->w; x++) {
+      // Get Y (luma) value from YUV422 buffer (GRAYSCALE IMAGE)
+      uint8_t *yp = &buffer[y * 2 * img->w + 2 * x + 1];
+
+      // Create input tensor to the model from the given image
+      input_tensor[0][y][x][0] = (*yp) * INV_255;
+    }
+  }
+}
+
+void run_model_prediction(float *steering_angle, float *prob_collision)
+{
+  // Output tensors from the model
+  float tensor_dense_1[1][1];       // Output: steering angle
+  float tensor_activation_8[1][1];  // Output: probability of collision
+
+  // Call model entry function
+  entry(input_tensor, tensor_dense_1, tensor_activation_8);
+
+  // Copy results to output pointers
+  *steering_angle = tensor_dense_1[0][0];
+  *prob_collision = tensor_activation_8[0][0];
+}
 
 
+static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id __attribute__((unused))) {
+  (void)camera_id; // Explicit that the camera_id is unused
 
-  // Set flag to indicate new image data is available
+  if (!img) return NULL; // Safety check
+
+  // Step 1: Preprocess the image into the model input tensor
+  preprocess_image(img);
+
+  // Step 2: Run the model to get predictions
+  float steering_angle, collision_prob;
+  run_model_prediction(&steering_angle, &collision_prob);
+
+  // Step 3: Store results in global struct safely
   pthread_mutex_lock(&mutex);
-
-  steering_angle = steering_out[0][0];
-  collision_prob = collision_out[0][0];
-  image_updated = true;
-  // export results
-  printf("Test\n");
+  global_output.s_k = steering_angle;
+  global_output.p = collision_prob;
+  global_output.updated = true;
   pthread_mutex_unlock(&mutex);
 
-  // Clean up allocated images to avoid memory leaks
-  image_free(&downscaled_image);
-  image_free(&gray_image);
-  
-  return &gray_image; //&gray_image;  // Return the processed grayscale image
+  return img; // Return the original (or processed) image if needed
 }
+
 
 /**
  * Initialization function for the Dronet Image Filter
  */
 void dronet_image_filter_init(void) {
+  memset(global_output, 0, 2*sizeof(struct nn_object_t));    // LOOK INTO THIS
   pthread_mutex_init(&mutex, NULL);
-  
-  // Register video processing callback
-  cv_add_to_device(&front_camera, process_image, DRONET_IMAGE_FILTER_FPS, 0);
+
+  #ifdef NN_OBJECT_DETECTOR_CAMERA
+    // Register video processing callback
+    cv_add_to_device(&NN_OBJECT_DETECTOR_CAMERA, nn_object_detector, NN_OBJECT_DETECTOR_FPS, 0);
+  #endif
 }
 
 /**
  * Periodic function to send processed image data via ABI messaging
  */
 void dronet_image_filter_periodic(void) {
+
+  static struct nn_object_t local_output;
   pthread_mutex_lock(&mutex);
-  if (image_updated) {
-      // Send processed image data via ABI messaging
-      AbiSendMsgVISUAL_DETECTION(DRONET_IMAGE_FILTER_ID, steering_angle, collision_prob);
-      image_updated = false;  // Reset flag after sending
-  }
+  memcpy(local_output, global_output, 2*sizeof(struct nn_object_t));
   pthread_mutex_unlock(&mutex);
+
+  if (local_output.updated) {
+      // Send processed image data via ABI messaging
+      AbiSendMsgVISUAL_DETECTION(NN_OBJECT_DETECTION_ID, local_output.s_k, local_outpul.p);
+      local_output.updated = false;  // Reset flag after sending
+  }
 }
