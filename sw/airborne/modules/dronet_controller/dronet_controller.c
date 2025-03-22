@@ -31,7 +31,7 @@
 
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
-#include "dronet.c"
+#include "dronet.h"
 
 // Define maximum horizontal speed of the drone from airframe configuration
 #ifndef V_MAX

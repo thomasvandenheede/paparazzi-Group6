@@ -7,6 +7,7 @@
 #include "state.h"
 #include "modules/core/abi.h"
 #include "dronet_image_filter.h"
+#include "dronet.h"
 
 
 // // ABI message definition
