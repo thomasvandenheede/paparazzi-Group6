@@ -18,6 +18,7 @@
  */
 
 #include "modules/dronet_controller/dronet_controller.h"
+#include "modules/computer_vision/dronet_image_filter.h"
 #include "firmwares/rotorcraft/navigation.h"
 #include "generated/airframe.h"
 #include "state.h"
@@ -39,12 +40,14 @@
 
 #define ABI_BROADCAST 255
 #define ABI_DRONET_IMAGE_MSG 1
-#define AbiBindMsgVISUAL_DETECTION(sender_id, steering_angle, collision_prob) {}
-#define AbiBindMsgVISUAL_DETECTION(sender_id, cb, callback) {}
 
-#ifndef VERBOSE_PRINT
-#define VERBOSE_PRINT(args...) printf(args)
+#ifndef AbiBindMsgVISUAL_DETECTION
+#define AbiBindMsgVISUAL_DETECTION(sender_id, steering_angle, collision_prob) {}
 #endif
+
+// #ifndef VERBOSE_PRINT
+// #define VERBOSE_PRINT(args...) printf(args)
+// #endif
 
 extern int32_t color_count;
 extern enum navigation_state_t navigation_state;
@@ -103,7 +106,7 @@ extern float heading_increment;
 
 #define ORANGE_AVOIDER_VERBOSE TRUE
 
-#define PRINT(string,...) fprintf(stderr, "[orange_avoider->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
+#define PRINT(string,...) fprintf(stderr, "[dronet_controller->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
 #if ORANGE_AVOIDER_VERBOSE
 #define VERBOSE_PRINT PRINT
 #else
@@ -125,16 +128,17 @@ float obstacle_free_confidence = 0.0f;
 float max_trajectory_confidence = 10.0f;
 float maxDistance = 5.0f;  // Example max distance
 
-static uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
-static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
-static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
-static uint8_t increase_nav_heading(float incrementDegrees);
-static uint8_t chooseRandomIncrementAvoidance(void);
+// static uint8_t moveWaypointForward(uint8_t waypoint, float distanceMeters);
+// static uint8_t calculateForwards(struct EnuCoor_i *new_coor, float distanceMeters);
+// static uint8_t moveWaypoint(uint8_t waypoint, struct EnuCoor_i *new_coor);
+// static uint8_t increase_nav_heading(float incrementDegrees);
+// static uint8_t chooseRandomIncrementAvoidance(void);
 
 // Define last values as static variables to retain their value between function calls
-static float last_theta_k = 0.0f;  
-static float last_velocity = 0.0f;  
+// static float last_theta_k = 0.0f;  
+// static float last_velocity = 0.0f;  
 
+static pthread_mutex_t mutex;
 
 float s_k = 0.f;
 float p = 1.f;
@@ -142,15 +146,17 @@ float p = 1.f;
 #ifndef ORANGE_AVOIDER_VISUAL_DETECTION_ID
 #define ORANGE_AVOIDER_VISUAL_DETECTION_ID ABI_BROADCAST
 #endif
-static abi_event dronet_image_ev;
-static void dronet_image_cb(float steering_angle, float collision_prob)
-{
-  s_k = steering_angle;
-  p = collision_prob;
-}
+// static abi_event dronet_image_ev;
+// static void dronet_image_cb(float steering_angle, float collision_prob)
+// {
+//   s_k = steering_angle;
+//   p = collision_prob;
+// }
 
 // Initialization function
 void dronet_controller_init(void) {
+  pthread_mutex_init(&mutex, NULL);
+
   // Bind the ABI message to receive image data
   AbiBindMsgVISUAL_DETECTION(DRONET_IMAGE_FILTER_ID, &dronet_image_ev, dronet_image_cb);
 }
@@ -161,26 +167,39 @@ void dronet_controller_periodic(void) {
         return;
     }
 
-    float theta_k = (1.0f - BETA) * last_theta_k + BETA * (s_k * (M_PI / 2.0f));
-    last_theta_k = theta_k;  // Update stored value
+    float steering_angle, collision_prob;
 
-    // Convert steering angle to heading change
-    float heading_increment = K_YAW * theta_k;
+    pthread_mutex_lock(&mutex);
+    steering_angle = global_output.s_k;
+    collision_prob = global_output.p;
+    pthread_mutex_unlock(&mutex);
 
-    // Limit yaw rate
-    heading_increment = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
-    increase_nav_heading(heading_increment);
+    if (steering_angle == 0 && collision_prob == 0) {
+      VERBOSE_PRINT("No valid inference results available.\n");
+      return;
+    }
 
-    float velocity = (1.0f - ALPHA) * last_velocity + ALPHA * (1.0f - p) * V_MAX;
-    last_velocity = velocity;  // Update stored value
+    // Update heading and velocity
+    heading_from_steering(steering_angle);
+    velocity_from_collision_prob(collision_prob);
 
-    float move_distance = K_V * velocity * DT;
-    move_distance = fminf(move_distance, V_MAX * DT);
+    VERBOSE_PRINT("Periodic - Steering: %.2f, Collision: %.2f\n", steering_angle, collision_prob);
+    
+    // float theta_k = (1.0f - BETA) * last_theta_k + BETA * (s_k * (M_PI / 2.0f));
+    // last_theta_k = theta_k;  // Update stored value
 
-    // Move the drone
-    moveWaypointForward(WP_TRAJECTORY, move_distance);
+    // // Convert steering angle to heading change
+    // float steering_input = K_YAW * theta_k;
+
+    // // Limit yaw rate
+    // steering_input = fmaxf(fminf(heading_increment, MAX_YAW_RATE * DT), -MAX_YAW_RATE * DT);
+    // heading_from_steering(steering_input);
+
+    // float velocity = (1.0f - ALPHA) * last_velocity + ALPHA * (1.0f - p) * V_MAX;
+    // last_velocity = velocity;  // Update stored value
+
 }
-
+  
 /*
  * Updates the NAV heading based on a scaled steering input in [-1, 1]
  * using a low-pass filter to smooth the heading changes.
@@ -188,12 +207,8 @@ void dronet_controller_periodic(void) {
 uint8_t heading_from_steering(float steering_input)  
 {
   // clamp steering input to [-1, 1]
-  if (steering_input > 1.0f) {
-    steering_input = 1.0f;
-  } else if (steering_input < -1.0f) {
-    steering_input = -1.0f;
-  }
-
+  steering_input = fmaxf(fminf(steering_input, 1.0f), -1.0f);
+                
   // Compute new filtered heading based on scaled steering input
   float new_heading = (1.0f - BETA) * stateGetNedToBodyEulers_f()->psi + BETA * ((M_PI / 2.0f) * steering_input);
 
@@ -201,6 +216,7 @@ uint8_t heading_from_steering(float steering_input)
   FLOAT_ANGLE_NORMALIZE(new_heading);
 
   // Set nav heading, declared in firmwares/rotorcraft/navigation.h
+  nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
   nav.heading = new_heading;
 
   VERBOSE_PRINT("Updated heading (rad): %f, (deg): %f\n", new_heading, DegOfRad(new_heading));
@@ -213,16 +229,15 @@ uint8_t heading_from_steering(float steering_input)
  */
 uint8_t velocity_from_collision_prob(float collision_prob)
 {
-  // Clamp collision probability
-  if (collision_prob < 0.0f) collision_prob = 0.0f;
-  if (collision_prob > 1.0f) collision_prob = 1.0f;
+  // Clamp collision probability to [0, 1]
+  collision_prob = fmaxf(fminf(collision_prob, 1.0f), 0.0f);
 
   // Compute current forward velocity
   struct EnuCoor_f *vel = stateGetSpeedEnu_f();
 
   float vx = vel->x;
   float vy = vel->y;
-  float vz = vel->z;
+  // float vz = vel->z;
 
   float current_forward_velocity = sqrtf(vx * vx + vy * vy);
 
@@ -233,11 +248,11 @@ uint8_t velocity_from_collision_prob(float collision_prob)
   float heading = stateGetNedToBodyEulers_f()->psi;
 
   // Apply velocity in heading direction (ENU frame)
-  nav.mode = NAV_MODE_SPEED;                    // LOOK INTO THIS
+  nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
   nav.speed.x = sinf(heading) * target_velocity;
   nav.speed.y = cosf(heading) * target_velocity;
   nav.speed.z = 0.0f; // Assuming flat-plane movement
 
-  VERBOSE_PRINT("Updated forward velocity: %.2f m/s (collision_prob=%.2f)\n", current_velocity, collision_prob);
+  VERBOSE_PRINT("Updated forward velocity: %.2f m/s (collision_prob=%.2f)\n", target_velocity, collision_prob);
   return false;
 }

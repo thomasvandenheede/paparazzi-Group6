@@ -35,12 +35,12 @@ PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
 // Mutex for thread safety
 static pthread_mutex_t mutex;
 
-// Define global variables
-struct nn_object_t {
-  float s_k;
-  float p;
-  bool updated;
-};
+// // Define global variables
+// struct nn_object_t {
+//   float s_k;
+//   float p;
+//   bool updated;
+// };
 struct nn_object_t global_output;
 
 #define IMG_WIDTH 200
@@ -118,7 +118,7 @@ static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id
  * Initialization function for the Dronet Image Filter
  */
 void dronet_image_filter_init(void) {
-  memset(global_output, 0, 2*sizeof(struct nn_object_t));    // LOOK INTO THIS
+  memset(&global_output, 0, sizeof(struct nn_object_t));    // LOOK INTO THIS
   pthread_mutex_init(&mutex, NULL);
 
   #ifdef NN_OBJECT_DETECTOR_CAMERA
@@ -134,12 +134,12 @@ void dronet_image_filter_periodic(void) {
 
   static struct nn_object_t local_output;
   pthread_mutex_lock(&mutex);
-  memcpy(local_output, global_output, 2*sizeof(struct nn_object_t));
+  memcpy(&local_output, &global_output, sizeof(struct nn_object_t));
   pthread_mutex_unlock(&mutex);
 
   if (local_output.updated) {
       // Send processed image data via ABI messaging
-      AbiSendMsgVISUAL_DETECTION(NN_OBJECT_DETECTION_ID, local_output.s_k, local_outpul.p);
+      AbiSendMsgVISUAL_DETECTION(NN_OBJECT_DETECTION_ID, local_output.s_k, local_output.p);
       local_output.updated = false;  // Reset flag after sending
   }
 }
