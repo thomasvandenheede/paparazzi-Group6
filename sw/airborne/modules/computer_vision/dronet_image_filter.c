@@ -36,12 +36,12 @@ PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
 // Mutex for thread safety
 static pthread_mutex_t mutex;
 
-// // Define global variables
-// struct nn_object_t {
-//   float s_k;
-//   float p;
-//   bool updated;
-// };
+// Define global variables
+struct nn_object_t {
+  float s_k;
+  float p;
+  bool updated;
+};
 struct nn_object_t global_output;
 
 #define IMG_WIDTH 200
@@ -77,17 +77,17 @@ void preprocess_image(struct image_t *img)
   }
 }
 
-void run_model_prediction(float *steering_angle, float *prob_collision)
+void run_model_prediction(float *steering_input, float *prob_collision)
 {
   // Output tensors from the model
-  float tensor_dense_1[1][1];       // Output: steering angle
+  float tensor_dense_1[1][1];       // Output: steering input
   float tensor_activation_8[1][1];  // Output: probability of collision
 
   // Call model entry function
   entry(input_tensor, tensor_dense_1, tensor_activation_8);
 
   // Copy results to output pointers
-  *steering_angle = tensor_dense_1[0][0];
+  *steering_input = tensor_dense_1[0][0];
   *prob_collision = tensor_activation_8[0][0];
 }
 
@@ -101,12 +101,12 @@ static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id
   preprocess_image(img);
 
   // Step 2: Run the model to get predictions
-  float steering_angle, collision_prob;
-  run_model_prediction(&steering_angle, &collision_prob);
+  float steering_input, collision_prob;
+  run_model_prediction(&steering_input, &collision_prob);
 
   // Step 3: Store results in global struct safely
   pthread_mutex_lock(&mutex);
-  global_output.s_k = steering_angle;
+  global_output.s_k = steering_input;
   global_output.p = collision_prob;
   global_output.updated = true;
   pthread_mutex_unlock(&mutex);
