@@ -56,6 +56,9 @@ void preprocess_image(struct image_t *img)
       input_tensor[0][y][x][0] = (*yp) * INV_255;
     }
   }
+
+  printf("[preprocess] Example pixel (0,0): %f, %f, %f", input_tensor[0][0][0][0], input_tensor[0][100][0][0], input_tensor[0][100][100][0]);
+
 }
 
 void run_model_prediction(float *steering_input, float *prob_collision)
@@ -67,9 +70,13 @@ void run_model_prediction(float *steering_input, float *prob_collision)
   // Call model entry function
   entry(input_tensor, tensor_dense_1, tensor_activation_8);
 
-  // Copy results to output pointers
-  *steering_input = tensor_dense_1[0][0];
-  *prob_collision = tensor_activation_8[0][0];
+  // // Copy results to output pointers
+  // *steering_input = tensor_dense_1[0][0];
+  // *prob_collision = tensor_activation_8[0][0];
+
+  *steering_input = 0.0f;
+  *prob_collision = 0.1f;
+
 }
 
 

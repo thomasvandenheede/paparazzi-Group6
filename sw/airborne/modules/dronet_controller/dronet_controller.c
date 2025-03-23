@@ -20,6 +20,7 @@
 #include "modules/dronet_controller/dronet_controller.h"
 #include "modules/computer_vision/dronet_image_filter.h"
 #include "firmwares/rotorcraft/navigation.h"
+#include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
 #include "state.h"
 #include "modules/core/abi.h"
@@ -102,6 +103,12 @@ void dronet_controller_periodic(void) {
       return;
   }
 
+  // Ensure we're in GUIDED mode (required for guided control to apply)
+  if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
+    VERBOSE_PRINT("Not in GUIDED mode. Controller inactive.\n");
+    return;
+  }
+
   if (s_k == 0 && p == 0) {
     VERBOSE_PRINT("No valid inference results available.\n");
     return;
@@ -129,11 +136,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case COLLISION_AVOID:
-      // Emergency stop
-      nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
-      nav.speed.x = 0.0f;
-      nav.speed.y = 0.0f;
 
+      // Emergency stop
+      guidance_h_set_body_vel(0.0f, 0.0f);
       VERBOSE_PRINT("EMERGENCY STOP: collision_prob = %.2f\n", p);
 
       // Randomly select new search direction
@@ -146,11 +151,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case OUT_OF_BOUNDS:
-      // Reorient and gently push drone back in
-      nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
-      nav.heading = M_PI; // Face "opposite" direction
-      nav.speed.x = 0.0f;
-      nav.speed.y = -0.2f; // Drift backward
+      // Reorient and push drone back
+      guidance_h_set_heading(M_PI); // face backward
+      guidance_h_set_body_vel(-0.2f, 0.0f); // slow backward
 
       VERBOSE_PRINT("OUT OF BOUNDS: Reorienting\n");
 
@@ -179,9 +182,8 @@ uint8_t heading_from_steering(float steering_input)
   // Normalize to [-pi, pi]
   FLOAT_ANGLE_NORMALIZE(new_heading);
 
-  // Set nav heading, declared in firmwares/rotorcraft/navigation.h
-  nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
-  nav.heading = new_heading;
+  // Set heading
+  guidance_h_set_heading(new_heading);
 
   VERBOSE_PRINT("Updated heading (rad): %f, (deg): %f\n", new_heading, DegOfRad(new_heading));
   return false;
@@ -208,14 +210,8 @@ uint8_t velocity_from_collision_prob(float collision_prob)
   // Compute low-pass filtered velocity
   float target_velocity = (1.0f - ALPHA) * current_forward_velocity + ALPHA * (1.0f - collision_prob) * V_MAX;
 
-  // Get current heading
-  float heading = stateGetNedToBodyEulers_f()->psi;
-
-  // Apply velocity in heading direction (ENU frame)
-  nav.setpoint_mode = NAV_SETPOINT_MODE_SPEED;
-  nav.speed.x = sinf(heading) * target_velocity;
-  nav.speed.y = cosf(heading) * target_velocity;
-  nav.speed.z = 0.0f; // Assuming flat-plane movement
+  // Move forward (vx), no lateral (vy)
+  guidance_h_set_body_vel(target_velocity, 0.0f); 
 
   VERBOSE_PRINT("Updated forward velocity: %.2f m/s (collision_prob=%.2f)\n", target_velocity, collision_prob);
   return false;
