@@ -77,7 +77,7 @@ enum navigation_state_t nav_state = NN_CONTROL;
 static abi_event dronet_image_ev;
 
 // Callback function
-static void dronet_image_cb(float steering_input, float collision_prob)
+static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float steering_input, float collision_prob)
 {
   s_k = steering_input;
   p = collision_prob;
@@ -229,10 +229,10 @@ uint8_t chooseRandomIncrementAvoidance(void)
   // Randomly choose CW or CCW avoiding direction
   if (rand() % 2 == 0) {
     s_k = 0.05f;
-    VERBOSE_PRINT("Set avoidance increment to: %f\n", steering_input);
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", s_k);
   } else {
     s_k = -0.05f;
-    VERBOSE_PRINT("Set avoidance increment to: %f\n", steering_input);
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", s_k);
   }
   return false;
 }

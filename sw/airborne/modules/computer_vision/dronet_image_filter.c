@@ -9,25 +9,6 @@
 #include "dronet_image_filter.h"
 #include "dronet.h"
 
-
-// // ABI message definition
-// #ifndef DRONET_IMAGE_FILTER_ID
-// #define DRONET_IMAGE_FILTER_ID 1
-// #endif
-
-// // Define ABI message functionality
-// #define ABI_BROADCAST 255
-// #define ABI_DRONET_IMAGE_MSG 1
-
-// // Define necessary ABI functions
-// #define AbiSendMsgDRONET_IMAGE(sender_id, image_data) {}
-// #define AbiBindMsgDRONET_IMAGE(sender_id, cb, callback) {}
-
-// // ABI event
-// static abi_event dronet_image_ev __attribute__((unused));
-
-
-
 #ifndef DRONET_IMAGE_FILTER_FPS
 #define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
 #endif
@@ -103,6 +84,8 @@ static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id
   // Step 2: Run the model to get predictions
   float steering_input, collision_prob;
   run_model_prediction(&steering_input, &collision_prob);
+
+  printf("[dronet_image_filter] Inference: s_k=%.2f, p=%.2f\n", steering_input, collision_prob);
 
   // Step 3: Store results in global struct safely
   pthread_mutex_lock(&mutex);
