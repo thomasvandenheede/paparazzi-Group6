@@ -52,12 +52,17 @@ void preprocess_image(struct image_t *img)
       // Get Y (luma) value from YUV422 buffer (GRAYSCALE IMAGE)
       uint8_t *yp = &buffer[y * 2 * img->w + 2 * x + 1];
 
+      // Rotate 90° counterclockwise when storing in the tensor
+      int rotated_x = y;
+      int rotated_y = img->w - 1 - x;
+
       // Create input tensor to the model from the given image
-      input_tensor[0][y][x][0] = (*yp) * INV_255;
+      input_tensor[0][rotated_y][rotated_x][0] = (*yp) * INV_255;
     }
   }
 
-  printf("[preprocess] Example pixel (0,0): %f, %f, %f", input_tensor[0][0][0][0], input_tensor[0][100][0][0], input_tensor[0][100][100][0]);
+  printf("[preprocess] Top-left (original): %f\n", input_tensor[0][0][0][0]);
+  printf("[preprocess] Bottom-left (rotated): %f\n", input_tensor[0][IMG_HEIGHT - 1][0][0]);
 
 }
 
@@ -70,12 +75,12 @@ void run_model_prediction(float *steering_input, float *prob_collision)
   // Call model entry function
   entry(input_tensor, tensor_dense_1, tensor_activation_8);
 
-  // // Copy results to output pointers
-  // *steering_input = tensor_dense_1[0][0];
-  // *prob_collision = tensor_activation_8[0][0];
+  // Copy results to output pointers
+  *steering_input = tensor_dense_1[0][0];
+  *prob_collision = tensor_activation_8[0][0];
 
-  *steering_input = 0.0f;
-  *prob_collision = 0.1f;
+  // *steering_input = 0.0f;
+  // *prob_collision = 0.1f;
 
 }
 
