@@ -89,14 +89,14 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
 
 struct image_t *process_image(struct image_t *img, uint8_t lum_min, 
   uint8_t lum_max, uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, 
-  uint8_t cr_max, uint8_t fill_y_limit, bool draw) {
+  uint8_t cr_max,uint8_t fill_y_limit, bool draw) {
   
     int IMAGE_WIDTH = img->w;  
     int IMAGE_HEIGHT = img->h;
     uint8_t *buffer = img->buf;    
 
-    //int LIMIT = (int) fill_y_limit;
-    int LIMIT = 102;
+    int LIMIT = (int) fill_y_limit;
+    //int LIMIT = 128; // Y_limit set half of image height
     int RED_LINE_THICKNESS = 3;
 
 
@@ -106,7 +106,6 @@ struct image_t *process_image(struct image_t *img, uint8_t lum_min,
 
     for (int x = LIMIT; x >= 0; x--) {  // Scan from right to left
         uint8_t *yp, *up, *vp;
-        //int index = x * 2 * IMAGE_WIDTH + 2 * y;  // Swapped indexing for rotated image
 
         if (x % 2 == 0) {
           // Even x
@@ -123,17 +122,16 @@ struct image_t *process_image(struct image_t *img, uint8_t lum_min,
         }
 
         if (detected_right && draw) {
-          *yp = 255;  // Brighten
+          *yp = 245;   // Y for your color
+          *up = 96;    // Cb (U) for your color
+          *vp = 130;   // Cr (V) for your color
         }
 
         if ((*yp >= lum_min) && (*yp <= lum_max) &&
             (*up >= cb_min) && (*up <= cb_max) &&
             (*vp >= cr_min) && (*vp <= cr_max)) {
-              *yp = 255;
               detected_right = true;
         }
-
-        
     }
   }
 
@@ -205,7 +203,9 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter)
   // Filter and find centroid
   uint32_t count = find_object_centroid(img, &x_c, &y_c, draw, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max);
   
-  img = process_image(img, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max, y_c, draw);
+  //process_image(img, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max, y_lim, draw);
+  img = process_image(img, 235, 255, 86, 106, 120, 140, 128, draw);
+
 
   VERBOSE_PRINT("Color count %d: %u, threshold %u, x_c %d, y_c %d\n", camera, object_count, count_threshold, x_c, y_c);
   VERBOSE_PRINT("centroid %d: (%d, %d) r: %4.2f a: %4.2f\n", camera, x_c, y_c,
