@@ -181,15 +181,12 @@
     </message>
 
     <message name="VISUAL_DETECTION" id="27">
-      <!-- <field name="pixel_x"      type="int16_t">Center pixel X</field>
+      <field name="pixel_x"      type="int16_t">Center pixel X</field>
       <field name="pixel_y"      type="int16_t">Center pixel Y</field>
       <field name="pixel_width"  type="int16_t">Width in pixels</field>
       <field name="pixel_height" type="int16_t">Height in pixels</field>
-      <field name="quality"      type="int32_t">Detection quality</field> -->
-      <!-- <field name="extra"        type="int16_t">Extra field for options like detector source etc</field> -->
-
-      <field name="steering_angle"      type="float">Steering Angle</field>
-      <field name="collision_prob"      type="float">Collision Probability</field>
+      <field name="quality"      type="int32_t">Detection quality</field>
+      <field name="extra"        type="int16_t">Extra field for options like detector source etc</field>
     </message>
 
     <message name="JOYSTICK" id="28">
@@ -258,6 +255,11 @@
       <field name="size" type="uint16_t">size of a matrix element</field>
       <field name="subtype" type="uint8_t">subtype of data, driver dependent (e.g. distance, reflectance, ...)</field>
       <field name="data" type="uint8_t*">pointer to the data of the matrix</field>
+    </message>
+
+    <message name="NN_DETECTION" id="38">
+      <field name="steering_angle"      type="float">Steering Angle</field>
+      <field name="collision_prob"      type="float">Collision Probability</field>
     </message>
 
   </msg_class>

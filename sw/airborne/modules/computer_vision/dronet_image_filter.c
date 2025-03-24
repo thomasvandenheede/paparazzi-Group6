@@ -39,6 +39,10 @@ void preprocess_image(struct image_t *img)
     return; // Safety check
   }
 
+  if (img->buf == NULL) {
+    printf("[preprocess] Image buffer is NULL!\n");
+  }
+
   // Safety check to guarantee consistent image dimensions
   if (img->w != IMG_WIDTH || img->h != IMG_HEIGHT) {
     printf("Unexpected image size!\n");
@@ -50,14 +54,18 @@ void preprocess_image(struct image_t *img)
   for (int y = 0; y < img->h; y++) {
     for (int x = 0; x < img->w; x++) {
       // Get Y (luma) value from YUV422 buffer (GRAYSCALE IMAGE)
-      uint8_t *yp = &buffer[y * 2 * img->w + 2 * x + 1];
+      uint8_t *yp; 
+      yp = &buffer[y * 2 * img->w + 2 * x + 1];
+
+      printf("[preprocess] Raw Y (0,0): %d\n", *yp);
 
       // Rotate 90° counterclockwise when storing in the tensor
       int rotated_x = y;
-      int rotated_y = img->w - 1 - x;
+      int rotated_y = IMG_WIDTH - 1 - x;
 
       // Create input tensor to the model from the given image
       input_tensor[0][rotated_y][rotated_x][0] = (*yp) * INV_255;
+      // input_tensor[0][y][x][0] = (*yp) * INV_255;
     }
   }
 
@@ -135,7 +143,7 @@ void dronet_image_filter_periodic(void) {
 
   if (local_output.updated) {
       // Send processed image data via ABI messaging
-      AbiSendMsgVISUAL_DETECTION(NN_OBJECT_DETECTION_ID, local_output.s_k, local_output.p);
+      AbiSendMsgNN_DETECTION(NN_OBJECT_DETECTION_ID, local_output.s_k, local_output.p);
       local_output.updated = false;  // Reset flag after sending
   }
 }
