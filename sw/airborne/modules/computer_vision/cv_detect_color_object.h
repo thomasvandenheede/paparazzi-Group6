@@ -55,7 +55,9 @@ extern bool cod_draw2;
 extern void color_object_detector_init(void);
 extern void color_object_detector_periodic(void);
 
-struct image_t *process_image(struct image_t *img, uint8_t lum_min, uint8_t lum_max, 
-  uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, uint8_t cr_max, uint8_t fill_y_limit, bool draw);
+struct image_t *process_image(struct image_t *img, uint8_t lum_min, 
+  uint8_t lum_max, uint8_t cb_min, uint8_t cb_max, uint8_t cr_min, 
+  uint8_t cr_max, uint8_t fill_y_limit, bool draw,
+  uint32_t *color_count, int32_t *centroid_x, int32_t *centroid_y);
 
 #endif /* COLOR_OBJECT_DETECTOR_CV_H */
