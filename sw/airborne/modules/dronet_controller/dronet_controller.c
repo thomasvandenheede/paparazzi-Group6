@@ -67,7 +67,7 @@ int32_t floor_centroid = 0;             // floor detector centroid in y directio
 float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
 
 // Define settings
-float oag_floor_count_frac = 0.01f;       // floor detection threshold as a fraction of total of image
+float oag_floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
 float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidance [rad/s]
 
 // Define navigation states
@@ -82,7 +82,7 @@ enum navigation_state_t {
 enum navigation_state_t nav_state = SEARCH_FOR_SAFE_HEADING;   // current state in state machine
 
 #ifndef DRONET_CONTROLLER_VISUAL_DETECTION_ID
-#define DRONET_CONTROLLER_VISUAL_DETECTION_ID ABI_BROADCAST
+// #define DRONET_CONTROLLER_VISUAL_DETECTION_ID ABI_BROADCAST
 #endif
 static abi_event dronet_image_ev;
 
@@ -94,7 +94,7 @@ static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float ste
 }
 
 #ifndef FLOOR_VISUAL_DETECTION_ID
-#define FLOOR_VISUAL_DETECTION_ID ABI_BROADCAST
+// #define FLOOR_VISUAL_DETECTION_ID ABI_BROADCAST
 #error This module requires two color filters, as such you have to define FLOOR_VISUAL_DETECTION_ID to the orange filter
 #error Please define FLOOR_VISUAL_DETECTION_ID to be COLOR_OBJECT_DETECTION1_ID or COLOR_OBJECT_DETECTION2_ID in your airframe
 #endif
@@ -145,6 +145,9 @@ void dronet_controller_periodic(void) {
 
   switch (nav_state) {
     case SAFE:
+
+      VERBOSE_PRINT("State: SAFE.\n");
+
       // Check if drone is out of bounds of the obstacle zone
       if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         nav_state = OUT_OF_BOUNDS;
@@ -165,6 +168,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case COLLISION_AVOID:
+
+      VERBOSE_PRINT("State: COLLISION_AVOID.\n");
+
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
       VERBOSE_PRINT("EMERGENCY STOP: collision_prob = %.2f\n", p);
@@ -178,6 +184,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case SEARCH_FOR_SAFE_HEADING:
+
+      VERBOSE_PRINT("State: SEARCH_FOR_SAFE_HEADING.\n");
+
       guidance_h_set_heading_rate(avoidance_heading_direction * oag_heading_rate);
 
       // Ensure the probability of collision is low enough before declaring the way safe
@@ -188,6 +197,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case OUT_OF_BOUNDS:
+
+      VERBOSE_PRINT("State: OUT_OF_BOUNDS.\n");
+
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
 
@@ -199,6 +211,9 @@ void dronet_controller_periodic(void) {
       break;
 
     case REENTER_ARENA:
+
+      VERBOSE_PRINT("State: REENTER_ARENA.\n");
+
       // force floor center to opposite side of turn to head back into arena
       if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
         // return to heading mode

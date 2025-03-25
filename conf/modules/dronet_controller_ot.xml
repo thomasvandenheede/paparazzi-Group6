@@ -1,0 +1,20 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="dronet_controller_ot" dir="dronet_controller">
+  <doc>
+    <description>
+      This module receives processed image data and controls the drone based on DroNet inference results.
+    </description>
+  </doc>
+
+  <header>
+    <file name="dronet_controller_ot.h"/>
+  </header>
+
+  <init fun="dronet_controller_ot_init()"/>
+  <periodic fun="dronet_controller_ot_periodic()" freq="10"/>
+
+  <makefile target="ap|nps">
+    <file name="dronet_controller_ot.c"/>
+  </makefile>
+</module>
