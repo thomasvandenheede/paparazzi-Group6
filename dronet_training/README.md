@@ -15,10 +15,10 @@ To train DroNet model you need to use the following commands:
 
 4. Retrain NN with CyberZoo images
 	`cd rpg_public_dronet`
-	`python cnn.py --restore_model=True --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --train_dir='../paparazzi-Group6/dronet_training/training' --val_dir='../paparazzi-Group6/dronet_training/validation' --weights_fname='model_weights.h5' --batch_size=16 --epochs=1 --log_rate=25`
+	`python cnn.py --restore_model=True --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --train_dir='../paparazzi-Group6/dronet_training/training' --val_dir='../paparazzi-Group6/dronet_training/validation' --weights_fname='../paparazzi-Group6/dronet_training/results/small_model/adjusted_minimal_model_weights.h5' --batch_size=32 --epochs=1 --log_rate=25`
 	
 5. Evaluate the model
-	`python evaluation.py --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --weights_fname='weights_001.h5' --test_dir='../paparazzi-Group6/dronet_training/training'`	
+	`python evaluation.py --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --weights_fname='../paparazzi-Group6/dronet_training/results/small_model/adjusted_minimal_model_weights.h5' --test_dir='../paparazzi-Group6/dronet_training/training'`	
 
 
 
