@@ -1,0 +1,2 @@
+Steering Value,Filename
+0.11,517950684.jpg
