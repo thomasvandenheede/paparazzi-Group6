@@ -572,6 +572,13 @@
 #endif
 
 /*
+ * NN_DETECTION communication (message 38)
+*/
+#ifndef NN_OBJECT_DETECTION_ID
+#define NN_OBJECT_DETECTION_ID 1
+#endif
+
+/*
  * JOYSTICK message (used for payload or control, but not as a RC)
  */
 #ifndef JOYSTICK_ID

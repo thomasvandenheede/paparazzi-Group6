@@ -57,7 +57,7 @@ void preprocess_image(struct image_t *img)
       uint8_t *yp; 
       yp = &buffer[y * 2 * img->w + 2 * x + 1];
 
-      printf("[preprocess] Raw Y (0,0): %d\n", *yp);
+      // printf("[preprocess] Raw Y (0,0): %d\n", *yp);
 
       // Rotate 90° counterclockwise when storing in the tensor
       int rotated_x = y;

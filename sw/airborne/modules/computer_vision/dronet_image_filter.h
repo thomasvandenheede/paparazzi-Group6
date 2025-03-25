@@ -9,8 +9,8 @@
 #define IMG_WIDTH  200
 #define IMG_HEIGHT 200
 
-// ABI Message ID for this detection module
-#define NN_OBJECT_DETECTION_ID 1
+// // ABI Message ID for this detection module
+// #define NN_OBJECT_DETECTION_ID 38
 
 // Initialization and periodic functions
 extern void dronet_image_filter_init(void);
