@@ -13,18 +13,21 @@ To train DroNet model you need to use the following commands:
 	`git@github.com:uzh-rpg/rpg_public_dronet.git`
 
 
-<!-- This doesn't work for now.
-Now you have both the conda environment and the repository to run the necessary scripts. You should further ensure images and disparities match for both training and validation found in paparazzi-Group6/dronet_training. You can optionally use run `rename_images.py` to have a more user-friendly image names. -->
-
-4. Run both `run_small_CNN.ipynb` jupyter notebooks in both `dronet_training/training` and `dronet_training/validation` to obtain `steering_sync.txt` text files.
-
-5. Retrain NN with CyberZoo images
+4. Retrain NN with CyberZoo images
 	`cd rpg_public_dronet`
 	`python cnn.py --restore_model=True --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --train_dir='../paparazzi-Group6/dronet_training/training' --val_dir='../paparazzi-Group6/dronet_training/validation' --weights_fname='model_weights.h5' --batch_size=16 --epochs=1 --log_rate=25`
 	
-6. Evaluate the model
+5. Evaluate the model
 	`python evaluation.py --experiment_rootdir='../paparazzi-Group6/dronet_training/results/small_model' --weights_fname='weights_001.h5' --test_dir='../paparazzi-Group6/dronet_training/training'`	
 
+
+
+<!-- TODO: jupyter notebook will give sync_steering.txt and labels.txt in whatever folder you put it, would be nice to only give labels for collisions and sync_steering for steering. -->
+Optional
+If you want to change parameters in `sync_steering.txt` or `labels.txt` you need to move `training_supplementary` or `validation_supplementary` folders and unpack them in (training or validation)/(collision or HMB). Run `run_small_CNN.ipynb` jupyter notebook to update `steering_sync.txt` or `labels.txt` text files.
+
+<!-- This doesn't work for now.
+Now you have both the conda environment and the repository to run the necessary scripts. You should further ensure images and disparities match for both training and validation found in paparazzi-Group6/dronet_training. You can optionally use run `rename_images.py` to have a more user-friendly image names. -->
 
 
 
