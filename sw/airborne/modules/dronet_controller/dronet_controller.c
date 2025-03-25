@@ -65,6 +65,8 @@ float p = 1.f;                          // Probability of collision
 int32_t floor_count = 0;                // green color count from color filter for floor detection
 int32_t floor_centroid = 0;             // floor detector centroid in y direction (along the horizon)
 float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
+int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead if safe.
+const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
 
 // Define settings
 float oag_floor_count_frac = 0.03f;       // floor detection threshold as a fraction of total of image
@@ -143,6 +145,17 @@ void dronet_controller_periodic(void) {
   VERBOSE_PRINT("Floor count: %d, threshold: %d\n", floor_count, floor_count_threshold);
   VERBOSE_PRINT("Floor centroid: %f\n", floor_centroid_frac);
 
+  // Update our safe confidence using collision probability
+  if (p < 0.5f) {
+    obstacle_free_confidence++;
+  } else {
+    obstacle_free_confidence -= 2;  // more cautious if danger detected
+  }
+
+  // Bound the value between 0 and max
+  Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
+
+
   switch (nav_state) {
     case SAFE:
 
@@ -151,16 +164,14 @@ void dronet_controller_periodic(void) {
       // Check if drone is out of bounds of the obstacle zone
       if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         nav_state = OUT_OF_BOUNDS;
-        break;
       }
       // Check if the predicted probability of collision is too high
-      else if (p > 0.95f) {
+      else if (obstacle_free_confidence == 0){
         nav_state = COLLISION_AVOID;
-        break;
       }
       // If safe navigate the drone
       else {
-        heading_from_steering(s_k);
+        // heading_from_steering(s_k);
         velocity_from_collision_prob(p);
 
         VERBOSE_PRINT("Periodic - Steering: %.2f, Collision: %.2f\n", s_k, p);
@@ -190,7 +201,7 @@ void dronet_controller_periodic(void) {
       guidance_h_set_heading_rate(avoidance_heading_direction * oag_heading_rate);
 
       // Ensure the probability of collision is low enough before declaring the way safe
-      if (p <= 0.5f){
+      if (obstacle_free_confidence >= 2){
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
         nav_state = SAFE;
       }
@@ -218,6 +229,9 @@ void dronet_controller_periodic(void) {
       if (floor_count >= floor_count_threshold  && avoidance_heading_direction * floor_centroid_frac >= 0.f){
         // return to heading mode
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
+
+        // reset safe counter
+        obstacle_free_confidence = 0;
 
         // ensure direction is safe before continuing
         nav_state = SAFE;
