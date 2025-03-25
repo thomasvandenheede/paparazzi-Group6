@@ -67,7 +67,7 @@ int32_t floor_centroid = 0;             // floor detector centroid in y directio
 float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
 
 // Define settings
-float oag_floor_count_frac = 0.05f;       // floor detection threshold as a fraction of total of image
+float oag_floor_count_frac = 0.03f;       // floor detection threshold as a fraction of total of image
 float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidance [rad/s]
 
 // Define navigation states
@@ -215,7 +215,7 @@ void dronet_controller_periodic(void) {
       VERBOSE_PRINT("State: REENTER_ARENA.\n");
 
       // force floor center to opposite side of turn to head back into arena
-      if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
+      if (floor_count >= floor_count_threshold){
         // return to heading mode
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
 
