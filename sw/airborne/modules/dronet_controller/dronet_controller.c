@@ -215,7 +215,7 @@ void dronet_controller_periodic(void) {
       VERBOSE_PRINT("State: REENTER_ARENA.\n");
 
       // force floor center to opposite side of turn to head back into arena
-      if (floor_count >= floor_count_threshold){
+      if (floor_count >= floor_count_threshold  && avoidance_heading_direction * floor_centroid_frac >= 0.f){
         // return to heading mode
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
 
