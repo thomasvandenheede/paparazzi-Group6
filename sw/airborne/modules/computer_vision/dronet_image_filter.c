@@ -127,7 +127,7 @@ void dronet_image_filter_init(void) {
 
   #ifdef NN_OBJECT_DETECTOR_CAMERA
     // Register video processing callback
-    cv_add_to_device(&NN_OBJECT_DETECTOR_CAMERA, nn_object_detector, NN_OBJECT_DETECTOR_FPS, 0);
+    cv_add_to_device(&NN_OBJECT_DETECTOR_CAMERA, nn_object_detector, NN_OBJECT_DETECTOR_FPS, 1);
   #endif
 }
 
