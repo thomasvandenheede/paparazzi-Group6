@@ -7,7 +7,7 @@ To train DroNet model you need to use the following commands:
 	
 2. Acticate environment and add dependencies
 	`conda activate dronet`
-	`pip install tensorflow==1.15 keras==2.1.4 onnx tf2onnx protobuf==3.20.* packaging h5py==2.10.0 python-gflags opencv-python `
+	`pip install tensorflow==1.15 keras==2.1.4 onnx tf2onnx protobuf==3.20.* packaging h5py==2.10.0 python-gflags opencv-python scikit-learn`
 	
 3. Clone DroNet repository
 	`git@github.com:uzh-rpg/rpg_public_dronet.git`
