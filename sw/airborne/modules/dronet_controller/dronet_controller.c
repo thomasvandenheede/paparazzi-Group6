@@ -279,17 +279,17 @@ uint8_t velocity_from_collision_prob(float collision_prob)
 }
 
 /*
- * Sets the variable 'steering_input' randomly positive/negative
+ * Sets the variable 'incrementForAvoidance' randomly positive/negative
  */
 uint8_t chooseRandomIncrementAvoidance(void)
 {
   // Randomly choose CW or CCW avoiding direction
   if (rand() % 2 == 0) {
-    s_k = 0.05f;
-    VERBOSE_PRINT("Set avoidance increment to: %f\n", s_k);
+    avoidance_heading_direction = 1.f;
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
   } else {
-    s_k = -0.05f;
-    VERBOSE_PRINT("Set avoidance increment to: %f\n", s_k);
+    avoidance_heading_direction = -1.f;
+    VERBOSE_PRINT("Set avoidance increment to: %f\n", avoidance_heading_direction * oag_heading_rate);
   }
   return false;
 }
