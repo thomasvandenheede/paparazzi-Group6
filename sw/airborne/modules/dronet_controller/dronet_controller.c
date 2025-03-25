@@ -19,6 +19,7 @@
 
 #include "modules/dronet_controller/dronet_controller.h"
 #include "modules/computer_vision/dronet_image_filter.h"
+#include "modules/computer_vision/dronet_floor_detector.h"
 #include "firmwares/rotorcraft/navigation.h"
 #include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
@@ -32,7 +33,7 @@
 
 #define NAV_C // needed to get the nav functions like Inside...
 #include "generated/flight_plan.h"
-#include "dronet.h"
+// #include "dronet.h"
 
 // Verbose settings
 #define DRONET_CONTROLLER_VERBOSE TRUE
@@ -59,18 +60,26 @@ static uint8_t chooseRandomIncrementAvoidance(void);
 #define BETA 0.5f
 
 // Initialize global variables
-float s_k = 0.f;          // Steering input
-float p = 1.f;            // Probability of collision
+float s_k = 0.f;                        // Steering input
+float p = 1.f;                          // Probability of collision
+int32_t floor_count = 0;                // green color count from color filter for floor detection
+int32_t floor_centroid = 0;             // floor detector centroid in y direction (along the horizon)
+float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
+
+// Define settings
+float oag_floor_count_frac = 0.01f;       // floor detection threshold as a fraction of total of image
+float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidance [rad/s]
 
 // Define navigation states
 enum navigation_state_t {
-  NN_CONTROL,         // Default mode: use neural net output
+  SAFE,         // Default mode: use neural net output
   COLLISION_AVOID,    // Stop or reverse to avoid collision
-  OUT_OF_BOUNDS       // Reorient and push drone back in bounds
+  SEARCH_FOR_SAFE_HEADING,
+  OUT_OF_BOUNDS,       // Reorient and push drone back in bounds
+  REENTER_ARENA
 };
 
-// Set the navigation state into the default control mode
-enum navigation_state_t nav_state = NN_CONTROL;
+enum navigation_state_t nav_state = SEARCH_FOR_SAFE_HEADING;   // current state in state machine
 
 #ifndef DRONET_CONTROLLER_VISUAL_DETECTION_ID
 #define DRONET_CONTROLLER_VISUAL_DETECTION_ID ABI_BROADCAST
@@ -84,6 +93,21 @@ static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float ste
   p = collision_prob;
 }
 
+#ifndef FLOOR_VISUAL_DETECTION_ID
+#define FLOOR_VISUAL_DETECTION_ID ABI_BROADCAST
+#error This module requires two color filters, as such you have to define FLOOR_VISUAL_DETECTION_ID to the orange filter
+#error Please define FLOOR_VISUAL_DETECTION_ID to be COLOR_OBJECT_DETECTION1_ID or COLOR_OBJECT_DETECTION2_ID in your airframe
+#endif
+static abi_event floor_detection_ev;
+static void floor_detection_cb(uint8_t __attribute__((unused)) sender_id,
+                               int16_t __attribute__((unused)) pixel_x, int16_t pixel_y,
+                               int16_t __attribute__((unused)) pixel_width, int16_t __attribute__((unused)) pixel_height,
+                               int32_t quality, int16_t __attribute__((unused)) extra)
+{
+  floor_count = quality;
+  floor_centroid = pixel_y;
+}
+
 // Initialization function
 void dronet_controller_init(void) {
 
@@ -93,18 +117,16 @@ void dronet_controller_init(void) {
 
   // Bind the ABI message to receive image data
   // Note: DRONET_CONTROLLER_VISUAL_DETECTION_ID corresponds to NN_OBJECT_DETECTION_ID
-  AbiBindMsgVISUAL_DETECTION(DRONET_CONTROLLER_VISUAL_DETECTION_ID, &dronet_image_ev, dronet_image_cb);
+  AbiBindMsgNN_DETECTION(DRONET_CONTROLLER_VISUAL_DETECTION_ID, &dronet_image_ev, dronet_image_cb);
+  AbiBindMsgVISUAL_DETECTION(FLOOR_VISUAL_DETECTION_ID, &floor_detection_ev, floor_detection_cb);
 }
 
 void dronet_controller_periodic(void) {
 
-  // Don’t navigate if not flying
-  if (!autopilot_in_flight()) {
-      return;
-  }
-
   // Ensure we're in GUIDED mode (required for guided control to apply)
   if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
+    // Set the navigation state into the default control mode
+    enum navigation_state_t nav_state = SEARCH_FOR_SAFE_HEADING;
     VERBOSE_PRINT("Not in GUIDED mode. Controller inactive.\n");
     return;
   }
@@ -114,10 +136,17 @@ void dronet_controller_periodic(void) {
     return;
   }
 
+  // Compute current color thresholds
+  int32_t floor_count_threshold = oag_floor_count_frac * front_camera.output_size.w * front_camera.output_size.h;
+  float floor_centroid_frac = floor_centroid / (float)front_camera.output_size.h / 2.f;
+
+  VERBOSE_PRINT("Floor count: %d, threshold: %d\n", floor_count, floor_count_threshold);
+  VERBOSE_PRINT("Floor centroid: %f\n", floor_centroid_frac);
+
   switch (nav_state) {
-    case NN_CONTROL:
+    case SAFE:
       // Check if drone is out of bounds of the obstacle zone
-      if (!InsideObstacleZone(GetPosX(), GetPosY())) {
+      if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         nav_state = OUT_OF_BOUNDS;
         break;
       }
@@ -136,7 +165,6 @@ void dronet_controller_periodic(void) {
       break;
 
     case COLLISION_AVOID:
-
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
       VERBOSE_PRINT("EMERGENCY STOP: collision_prob = %.2f\n", p);
@@ -144,24 +172,42 @@ void dronet_controller_periodic(void) {
       // Randomly select new search direction
       chooseRandomIncrementAvoidance();
 
-      // Return to control if it's safe again
-      if (p < 0.5f) {
-        nav_state = NN_CONTROL;
+      // Search for safe heading mode
+      nav_state = SEARCH_FOR_SAFE_HEADING;
+
+      break;
+
+    case SEARCH_FOR_SAFE_HEADING:
+      guidance_h_set_heading_rate(avoidance_heading_direction * oag_heading_rate);
+
+      // Ensure the probability of collision is low enough before declaring the way safe
+      if (p <= 0.5f){
+        guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
+        nav_state = SAFE;
       }
       break;
 
     case OUT_OF_BOUNDS:
-      // Reorient and push drone back
-      guidance_h_set_heading(M_PI); // face backward
-      guidance_h_set_body_vel(-0.2f, 0.0f); // slow backward
+      // Emergency stop
+      guidance_h_set_body_vel(0.0f, 0.0f);
 
-      VERBOSE_PRINT("OUT OF BOUNDS: Reorienting\n");
+      // start turn back into arena
+      guidance_h_set_heading_rate(avoidance_heading_direction * RadOfDeg(15));
 
-      if (InsideObstacleZone(GetPosX(), GetPosY())) {
-        nav_state = NN_CONTROL;
+      nav_state = REENTER_ARENA;
+
+      break;
+
+    case REENTER_ARENA:
+      // force floor center to opposite side of turn to head back into arena
+      if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){
+        // return to heading mode
+        guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
+
+        // ensure direction is safe before continuing
+        nav_state = SAFE;
       }
       break;
-    
     default:
       break;
   }
