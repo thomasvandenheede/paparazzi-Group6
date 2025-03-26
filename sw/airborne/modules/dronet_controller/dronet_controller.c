@@ -49,6 +49,7 @@
 static uint8_t heading_from_steering(float steering_input);
 static uint8_t velocity_from_collision_prob(float collision_prob);
 static uint8_t chooseRandomIncrementAvoidance(void);
+static uint8_t heading_from_collision_prob(float collision_prob);
 
 // Define maximum horizontal speed of the drone from airframe configuration
 #ifndef V_MAX
@@ -67,6 +68,10 @@ int32_t floor_centroid = 0;             // floor detector centroid in y directio
 float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
 int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead if safe.
 const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
+
+bool steering_enabled = true;
+int16_t safe_frame_count = 0;
+const int16_t safe_frame_threshold = 40; // adjust: 20 frames = ~1 sec at 20Hz
 
 // Define settings
 float oag_floor_count_frac = 0.03f;       // floor detection threshold as a fraction of total of image
@@ -164,15 +169,29 @@ void dronet_controller_periodic(void) {
       // Check if drone is out of bounds of the obstacle zone
       if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         nav_state = OUT_OF_BOUNDS;
+        // steering_enabled = false;
+        // safe_frame_count = 0;
       }
       // Check if the predicted probability of collision is too high
       else if (obstacle_free_confidence == 0){
         nav_state = COLLISION_AVOID;
+        // steering_enabled = false;
+        // safe_frame_count = 0;
       }
       // If safe navigate the drone
       else {
+        // safe_frame_count++;
+        // if (safe_frame_count >= safe_frame_threshold) {
+        //   steering_enabled = true;
+        // }
+    
+        // if (steering_enabled) {
+        //   heading_from_steering(s_k);
+        // }
+
         // heading_from_steering(s_k);
         velocity_from_collision_prob(p);
+        heading_from_collision_prob(p);
 
         VERBOSE_PRINT("Periodic - Steering: %.2f, Collision: %.2f\n", s_k, p);
       }
@@ -181,6 +200,9 @@ void dronet_controller_periodic(void) {
     case COLLISION_AVOID:
 
       VERBOSE_PRINT("State: COLLISION_AVOID.\n");
+
+      // safe_frame_count = 0;
+      // steering_enabled = false;
 
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
@@ -211,6 +233,9 @@ void dronet_controller_periodic(void) {
 
       VERBOSE_PRINT("State: OUT_OF_BOUNDS.\n");
 
+      // safe_frame_count = 0;
+      // steering_enabled = false;
+
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
 
@@ -224,6 +249,9 @@ void dronet_controller_periodic(void) {
     case REENTER_ARENA:
 
       VERBOSE_PRINT("State: REENTER_ARENA.\n");
+
+      // safe_frame_count = 0;
+      // steering_enabled = false;
 
       // force floor center to opposite side of turn to head back into arena
       if (floor_count >= floor_count_threshold  && avoidance_heading_direction * floor_centroid_frac >= 0.f){
@@ -240,6 +268,21 @@ void dronet_controller_periodic(void) {
     default:
       break;
   }
+}
+
+uint8_t heading_from_collision_prob(float collision_prob)
+{
+  // // Clamp collision probability
+  // collision_prob = fmaxf(fminf(collision_prob, 1.0f), 0.0f);
+
+  // Scale heading change more aggressively when collision is likely
+  float heading_rate = collision_prob * avoidance_heading_direction * oag_heading_rate;
+
+  // Apply rate (can also filter if needed)
+  guidance_h_set_heading_rate(heading_rate);
+
+  VERBOSE_PRINT("Updated heading rate: %.2f rad/s (collision_prob=%.2f)\n", heading_rate, collision_prob);
+  return false;
 }
   
 /*

@@ -7,12 +7,22 @@
 #include "state.h"
 #include "modules/core/abi.h"
 #include "dronet_image_filter.h"
-#include "dronet.h"
+#include "dronet_small.h"
 
 #ifndef DRONET_IMAGE_FILTER_FPS
 #define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
 #endif
 PRINT_CONFIG_VAR(DRONET_IMAGE_FILTER_FPS)
+
+ // Verbose settings
+ #define DRONET_IMAGE_FILTER_VERBOSE TRUE
+ 
+ #define PRINT(string,...) fprintf(stderr, "[dronet_image_filter->%s()] " string,__FUNCTION__ , ##__VA_ARGS__)
+ #if DRONET_IMAGE_FILTER_VERBOSE
+ #define VERBOSE_PRINT PRINT
+ #else
+ #define VERBOSE_PRINT(...)
+ #endif
 
 // Mutex for thread safety
 static pthread_mutex_t mutex;
@@ -35,17 +45,17 @@ static float input_tensor[1][IMG_HEIGHT][IMG_WIDTH][1];
 void preprocess_image(struct image_t *img)
 {
   if (!img) {
-    printf("Image invalid!\n");
+    VERBOSE_PRINT("Image invalid!\n");
     return; // Safety check
   }
 
   if (img->buf == NULL) {
-    printf("[preprocess] Image buffer is NULL!\n");
+    VERBOSE_PRINT("Image buffer is NULL!\n");
   }
 
   // Safety check to guarantee consistent image dimensions
   if (img->w != IMG_WIDTH || img->h != IMG_HEIGHT) {
-    printf("Unexpected image size!\n");
+    VERBOSE_PRINT("Unexpected image size!\n");
     return;
   }
 
@@ -57,8 +67,6 @@ void preprocess_image(struct image_t *img)
       uint8_t *yp; 
       yp = &buffer[y * 2 * img->w + 2 * x + 1];
 
-      // printf("[preprocess] Raw Y (0,0): %d\n", *yp);
-
       // Rotate 90° counterclockwise when storing in the tensor
       int rotated_x = y;
       int rotated_y = IMG_WIDTH - 1 - x;
@@ -69,9 +77,6 @@ void preprocess_image(struct image_t *img)
     }
   }
 
-  printf("[preprocess] Top-left (original): %f\n", input_tensor[0][0][0][0]);
-  printf("[preprocess] Bottom-left (rotated): %f\n", input_tensor[0][IMG_HEIGHT - 1][0][0]);
-
 }
 
 void run_model_prediction(float *steering_input, float *prob_collision)
@@ -81,14 +86,14 @@ void run_model_prediction(float *steering_input, float *prob_collision)
   float tensor_activation_8[1][1];  // Output: probability of collision
 
   // Call model entry function
-  entry(input_tensor, tensor_dense_1, tensor_activation_8);
+  // entry(input_tensor, tensor_dense_1, tensor_activation_8);
+  entry(input_tensor, tensor_activation_8);
 
   // Copy results to output pointers
-  *steering_input = tensor_dense_1[0][0];
+  // *steering_input = tensor_dense_1[0][0];
+  // *prob_collision = tensor_activation_8[0][0];
+  *steering_input = 0.0f;
   *prob_collision = tensor_activation_8[0][0];
-
-  // *steering_input = 0.0f;
-  // *prob_collision = 0.1f;
 
 }
 
@@ -105,7 +110,7 @@ static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id
   float steering_input, collision_prob;
   run_model_prediction(&steering_input, &collision_prob);
 
-  printf("[dronet_image_filter] Inference: s_k=%.2f, p=%.2f\n", steering_input, collision_prob);
+  VERBOSE_PRINT("Inference: s_k=%.2f, p=%.2f\n", steering_input, collision_prob);
 
   // Step 3: Store results in global struct safely
   pthread_mutex_lock(&mutex);

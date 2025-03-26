@@ -1,0 +1,147 @@
+diff --git a/evaluation.py b/evaluation.py
+index ec756c2..4c0df9a 100644
+--- a/evaluation.py
++++ b/evaluation.py
+@@ -203,45 +203,48 @@ def _main():
+             model, test_generator, nb_batches, verbose = 1)
+ 
+     # Param t. t=1 steering, t=0 collision
+-    t_mask = t==1
++    t_mask = t==0
+ 
+ 
+     # ************************* Steering evaluation ***************************
+     
+-    # Predicted and real steerings
+-    pred_steerings = predictions[t_mask,0]
+-    real_steerings = ground_truth[t_mask,0]
++    # # Predicted and real steerings
++    # pred_steerings = predictions[t_mask,0]
++    # real_steerings = ground_truth[t_mask,0]
+ 
+-    # Compute random and constant baselines for steerings
+-    random_steerings = random_regression_baseline(real_steerings)
+-    constant_steerings = constant_baseline(real_steerings)
++    # # Compute random and constant baselines for steerings
++    # random_steerings = random_regression_baseline(real_steerings)
++    # constant_steerings = constant_baseline(real_steerings)
+ 
+-    # Create dictionary with filenames
+-    dict_fname = {'test_regression.json': pred_steerings,
+-                  'random_regression.json': random_steerings,
+-                  'constant_regression.json': constant_steerings}
++    # # Create dictionary with filenames
++    # dict_fname = {'test_regression.json': pred_steerings,
++    #               'random_regression.json': random_steerings,
++    #               'constant_regression.json': constant_steerings}
+ 
+-    # Evaluate predictions: EVA, residuals, and highest errors
+-    for fname, pred in dict_fname.items():
+-        abs_fname = os.path.join(FLAGS.experiment_rootdir, fname)
+-        evaluate_regression(pred, real_steerings, abs_fname)
++    # # Evaluate predictions: EVA, residuals, and highest errors
++    # for fname, pred in dict_fname.items():
++    #     abs_fname = os.path.join(FLAGS.experiment_rootdir, fname)
++    #     evaluate_regression(pred, real_steerings, abs_fname)
+ 
+-    # Write predicted and real steerings
+-    dict_test = {'pred_steerings': pred_steerings.tolist(),
+-                 'real_steerings': real_steerings.tolist()}
+-    utils.write_to_file(dict_test,os.path.join(FLAGS.experiment_rootdir,
+-                                               'predicted_and_real_steerings.json'))
++    # # Write predicted and real steerings
++    # dict_test = {'pred_steerings': pred_steerings.tolist(),
++    #              'real_steerings': real_steerings.tolist()}
++    # utils.write_to_file(dict_test,os.path.join(FLAGS.experiment_rootdir,
++    #                                            'predicted_and_real_steerings.json'))
+ 
+ 
+ 
+     # *********************** Collision evaluation ****************************
+     
+     # Predicted probabilities and real labels
+-    pred_prob = predictions[~t_mask,1]
++    # pred_prob = predictions[~t_mask,1]
++    pred_prob = predictions[t_mask]
++
+     pred_labels = np.zeros_like(pred_prob)
+     pred_labels[pred_prob >= 0.5] = 1
+                
+-    real_labels = ground_truth[~t_mask,1]
++    # real_labels = ground_truth[~t_mask,1]
++    real_labels = ground_truth[t_mask, 1]
+ 
+     # Compute random, weighted and majorirty-class baselines for collision
+     random_labels = random_classification_baseline(real_labels)
+diff --git a/log_utils.py b/log_utils.py
+index 18041f3..0fcae7c 100644
+--- a/log_utils.py
++++ b/log_utils.py
+@@ -50,6 +50,6 @@ class MyCallback(keras.callbacks.Callback):
+         sess = K.get_session()
+         mse_function = self.batch_size-(self.batch_size-10)*(np.maximum(0.0,1.0-np.exp(-1.0/30.0*(epoch-30.0))))
+         entropy_function = self.batch_size-(self.batch_size-5)*(np.maximum(0.0,1.0-np.exp(-1.0/30.0*(epoch-30.0))))
+-        self.model.k_mse.load(int(np.round(mse_function)), sess)
++        # self.model.k_mse.load(int(np.round(mse_function)), sess)
+         self.model.k_entropy.load(int(np.round(entropy_function)), sess)
+ 
+diff --git a/model/model_weights.h5 b/model/model_weights.h5
+index 2b55306..e35ef02 100644
+Binary files a/model/model_weights.h5 and b/model/model_weights.h5 differ
+diff --git a/plot_results.py b/plot_results.py
+index c6a9799..e624606 100644
+--- a/plot_results.py
++++ b/plot_results.py
+@@ -78,12 +78,12 @@ def plot_confusion_matrix(real_labels, pred_prob, classes,
+     
+ def _main():
+     
+-    # Compute histograms from predicted and real steerings
+-    fname_steer = os.path.join(FLAGS.experiment_rootdir, 'predicted_and_real_steerings.json')
+-    with open(fname_steer,'r') as f1:
+-        dict_steerings = json.load(f1)
+-    make_and_save_histograms(dict_steerings['pred_steerings'], dict_steerings['real_steerings'],
+-                             os.path.join(FLAGS.experiment_rootdir, "histograms.png"))
++    # # Compute histograms from predicted and real steerings
++    # fname_steer = os.path.join(FLAGS.experiment_rootdir, 'predicted_and_real_steerings.json')
++    # with open(fname_steer,'r') as f1:
++    #     dict_steerings = json.load(f1)
++    # make_and_save_histograms(dict_steerings['pred_steerings'], dict_steerings['real_steerings'],
++    #                          os.path.join(FLAGS.experiment_rootdir, "histograms.png"))
+     
+     # Compute confusion matrix from predicted and real labels
+     fname_labels = os.path.join(FLAGS.experiment_rootdir,'predicted_and_real_labels.json')
+diff --git a/utils.py b/utils.py
+index e8d036a..d2e42c2 100644
+--- a/utils.py
++++ b/utils.py
+@@ -132,7 +132,8 @@ class DroneDirectoryIterator(Iterator):
+         except OSError as e:
+             # Try load collision labels if there are no steerings
+             try:
+-                ground_truth = np.loadtxt(labels_filename, usecols=0)
++                ground_truth = np.loadtxt(labels_filename, usecols=0,
++                                  delimiter=',', skiprows=1)
+                 exp_type = 0
+             except OSError as e:
+                 print("Neither steerings nor labels found in dir {}".format(
+@@ -211,7 +212,7 @@ class DroneDirectoryIterator(Iterator):
+                 batch_coll[i,1] = self.ground_truth[index_array[i]]
+ 
+         batch_y = [batch_steer, batch_coll]
+-        return batch_x, batch_y
++        return batch_x, batch_coll
+ 
+ 
+ def compute_predictions_and_gt(model, generator, steps,
+@@ -293,8 +294,8 @@ def compute_predictions_and_gt(model, generator, steps,
+             all_outs[i].append(out)
+ 
+         for i, lab in enumerate(gt_lab):
+-            all_labels[i].append(lab[:,1])
+-            all_ts[i].append(lab[:,0])
++            all_labels.append(gt_lab[0][:,1])
++            all_ts.append(gt_lab[0][:,0])
+ 
+         steps_done += 1
+         if verbose == 1:

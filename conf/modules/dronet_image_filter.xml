@@ -13,7 +13,7 @@
   <periodic fun="dronet_image_filter_periodic()" freq="50"/>
 
   <makefile>
-    <file name="dronet.c"/>
+    <file name="dronet_small.c"/>
     <file name="dronet_image_filter.c"/>
   </makefile>
 </module>
