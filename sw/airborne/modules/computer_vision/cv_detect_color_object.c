@@ -206,6 +206,98 @@ void color_object_detector_init(void)
  * @param draw - whether or not to draw on image
  * @return number of pixels of image within the filter bounds.
  */
+
+
+uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc, bool draw,
+                              uint8_t lum_min, uint8_t lum_max,
+                              uint8_t cb_min, uint8_t cb_max,
+                              uint8_t cr_min, uint8_t cr_max)
+{
+    uint32_t cnt = 0;
+    uint32_t tot_x = 0;
+    uint32_t tot_y = 0;
+    uint8_t *buffer = img->buf;
+
+    // Image dimensions (rotated 90 degrees clockwise)
+    uint16_t img_width = img->w;  
+    uint16_t img_height = img->h;
+
+    // Define cropping bounds (keep only the vertical middle third)
+    uint16_t mid_y_start = img_height / 3;
+    uint16_t mid_y_end = 2 * img_height / 3;
+    uint16_t mid_x_end = img_width / 2;
+
+    // Go through only the cropped vertical middle third
+    for (uint16_t y = mid_y_start; y < mid_y_end; y++) {  // Only bottom half
+      for (uint16_t x = 0; x < mid_x_end; x++) {  // Keep full width
+        uint8_t *yp, *up, *vp;
+
+        if (x % 2 == 0) {
+        // Even x
+        up = &buffer[y * 2 * img_width + 2 * x];      // U
+        yp = &buffer[y * 2 * img_width + 2 * x + 1];  // Y1
+        vp = &buffer[y * 2 * img_width + 2 * x + 2];  // V
+      } else {
+        // Odd x
+        up = &buffer[y * 2 * img_width + 2 * x - 2];  // U
+        vp = &buffer[y * 2 * img_width + 2 * x];      // V
+        yp = &buffer[y * 2 * img_width + 2 * x + 1];  // Y2
+      }
+
+      // Check if the pixel is within the defined color range
+      if ((*yp >= lum_min) && (*yp <= lum_max) &&
+          (*up >= cb_min) && (*up <= cb_max) &&
+          (*vp >= cr_min) && (*vp <= cr_max)) {
+        cnt++;
+        tot_x += x;
+        tot_y += y;
+        if (draw) {
+          *yp = 255;  // Highlight detected pixels
+        }
+      }
+    }
+  }
+
+  if (cnt > 0) {
+    *p_xc = (int32_t)roundf(tot_x / ((float) cnt) - img_width * 0.5f);
+    *p_yc = (int32_t)roundf(img_height * 0.5f - tot_y / ((float) cnt));
+  } else {
+  *p_xc = 0;
+  *p_yc = 0;
+  }
+
+  // Draw bounding box
+  if (draw) {
+    for (uint16_t y = mid_y_start; y < mid_y_end; y++) {  
+        // Left boundary of the cropped region (bottom in rtp viewer)
+        buffer[y * 2 * img_width + 1] = 255;  // Y
+        buffer[y * 2 * img_width + 0] = 128;  // U
+        buffer[y * 2 * img_width + 2] = 128;  // V
+
+        // Right boundary of the cropped region (top in rtp viewer)
+        buffer[y * 2 * img_width + 2 * (mid_x_end - 1) + 1] = 255;
+        buffer[y * 2 * img_width + 2 * (mid_x_end - 1) + 0] = 128;
+        buffer[y * 2 * img_width + 2 * (mid_x_end - 1) + 2] = 128;
+    }
+
+    for (uint16_t x = 0; x < mid_x_end; x++) {  
+        // Top boundary of the cropped region (left in rtp viewer)
+        buffer[mid_y_start * 2 * img_width + 2 * x + 1] = 255;
+        buffer[mid_y_start * 2 * img_width + 2 * x + 0] = 128;
+        buffer[mid_y_start * 2 * img_width + 2 * x + 2] = 128;
+
+        // Bottom boundary of the cropped region (right in rtp viewer)
+        buffer[(mid_y_end - 1) * 2 * img_width + 2 * x + 1] = 255;
+        buffer[(mid_y_end - 1) * 2 * img_width + 2 * x + 0] = 128;
+        buffer[(mid_y_end - 1) * 2 * img_width + 2 * x + 2] = 128;
+    }
+  }
+
+  return cnt;
+}
+
+
+ /*
 uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc, bool draw,
                               uint8_t lum_min, uint8_t lum_max,
                               uint8_t cb_min, uint8_t cb_max,
@@ -255,6 +347,7 @@ uint32_t find_object_centroid(struct image_t *img, int32_t* p_xc, int32_t* p_yc,
   }
   return cnt;
 }
+*/
 
 void color_object_detector_periodic(void)
 {

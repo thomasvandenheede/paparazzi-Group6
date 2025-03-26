@@ -51,7 +51,7 @@ enum navigation_state_t {
   };
 
 // define settings
-float oa_color_count_frac = 0.3f; // if 18% of the pixels in the camerafeed are orange, an obstacle will be presents
+float oa_color_count_frac = 0.7f; // if 18% of the pixels in the camerafeed are orange, an obstacle will be presents
 
 // define and initialise global variables
 enum navigation_state_t navigation_state = SEARCH_FOR_SAFE_HEADING;
@@ -105,7 +105,7 @@ void orange_avoider_periodic(void)
   }
 
   // compute current color thresholds
-  int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w * front_camera.output_size.h;
+  int32_t color_count_threshold = oa_color_count_frac * front_camera.output_size.w / 2 * front_camera.output_size.h / 3;
 
   VERBOSE_PRINT("Heading Increment: %d \n", heading_increment);
 
