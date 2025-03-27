@@ -7,7 +7,8 @@
 #include "state.h"
 #include "modules/core/abi.h"
 #include "dronet_image_filter.h"
-#include "dronet_small.h"
+// #include "dronet_small.h"
+#include "dronet.h"
 
 #ifndef DRONET_IMAGE_FILTER_FPS
 #define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
@@ -86,8 +87,8 @@ void run_model_prediction(float *steering_input, float *prob_collision)
   float tensor_activation_8[1][1];  // Output: probability of collision
 
   // Call model entry function
-  // entry(input_tensor, tensor_dense_1, tensor_activation_8);
-  entry(input_tensor, tensor_activation_8);
+  entry(input_tensor, tensor_dense_1, tensor_activation_8);
+  // entry(input_tensor, tensor_activation_8);
 
   // Copy results to output pointers
   // *steering_input = tensor_dense_1[0][0];
