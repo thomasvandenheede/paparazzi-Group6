@@ -258,7 +258,7 @@
     </message>
 
     <message name="NN_DETECTION" id="38">
-      <field name="steering_angle"      type="float">Steering Angle</field>
+      <!-- <field name="steering_angle"      type="float">Steering Angle</field> -->
       <field name="collision_prob"      type="float">Collision Probability</field>
     </message>
 

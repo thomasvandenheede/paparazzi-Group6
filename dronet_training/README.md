@@ -30,5 +30,13 @@ If you want to change parameters in `sync_steering.txt` or `labels.txt` you need
 Now you have both the conda environment and the repository to run the necessary scripts. You should further ensure images and disparities match for both training and validation found in paparazzi-Group6/dronet_training. You can optionally use run `rename_images.py` to have a more user-friendly image names. -->
 
 
+How to transform a model into .onnx file and then into .c file:
+
+1. `python convert_to_onnx.py`
+
+2. `cd [~/path/to/onnx2c/build]`
+
+3. `./onnx2c -d unk__136:1 /home/simina/rpg_public_dronet/model_small/dronet_small.onnx > dronet_small.c`
+
 
 

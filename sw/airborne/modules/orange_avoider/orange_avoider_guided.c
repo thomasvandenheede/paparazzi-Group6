@@ -184,7 +184,6 @@ void orange_avoider_guided_periodic(void)
 
       break;
     case REENTER_ARENA:
-      guidance_h_set_body_vel(-0.1f, 0.0f); // Move slowly backward 
 
       // force floor center to opposite side of turn to head back into arena
       if (floor_count >= floor_count_threshold && avoidance_heading_direction * floor_centroid_frac >= 0.f){

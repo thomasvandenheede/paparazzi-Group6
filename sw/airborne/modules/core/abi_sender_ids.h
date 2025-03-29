@@ -578,6 +578,10 @@
 #define NN_OBJECT_DETECTION_ID 1
 #endif
 
+#ifndef NN_OBJECT_DETECTION_ID_OURS
+#define NN_OBJECT_DETECTION_ID_OURS 2
+#endif
+
 /*
  * JOYSTICK message (used for payload or control, but not as a RC)
  */

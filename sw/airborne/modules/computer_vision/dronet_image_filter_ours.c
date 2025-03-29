@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
-#include "dronet.h"
+#include "dronet_ours.h"
 
 #ifndef DRONET_IMAGE_FILTER_FPS
 #define DRONET_IMAGE_FILTER_FPS 0       ///< Default FPS (zero means run at camera fps)
@@ -32,7 +32,7 @@ struct nn_object_t {
   float p;
   bool updated;
 };
-struct nn_object_t global_output;
+struct nn_object_t global_output_ours;
 
 #define IMG_WIDTH 200
 #define IMG_HEIGHT 200
@@ -41,7 +41,7 @@ struct nn_object_t global_output;
 // Declare input tensor as 4D array: [batch][height][width][channels]
 static float input_tensor[1][IMG_HEIGHT][IMG_WIDTH][1];
 
-void preprocess_image(struct image_t *img)
+void preprocess_image_ours(struct image_t *img)
 {
   if (!img) {
     VERBOSE_PRINT("Image invalid!\n");
@@ -74,40 +74,40 @@ void preprocess_image(struct image_t *img)
       input_tensor[0][rotated_y][rotated_x][0] = (*yp) * INV_255;
     }
   }
+
 }
 
-void run_model_prediction(float *prob_collision)
+void run_model_prediction_ours(float *prob_collision)
 {
   // Output tensors from the model
-  float tensor_dense_1[1][1];       // Output: steering input (NOT used)
   float tensor_activation_8[1][1];  // Output: probability of collision
 
   // Call model entry function
-  entry(input_tensor, tensor_dense_1, tensor_activation_8);
+  entry_ours(input_tensor, tensor_activation_8);
 
   // Copy results to output pointers
   *prob_collision = tensor_activation_8[0][0];
 }
 
 
-static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id __attribute__((unused))) {
+static struct image_t *nn_object_detector_ours(struct image_t *img, uint8_t camera_id __attribute__((unused))) {
   (void)camera_id; // Explicit that the camera_id is unused
 
   if (!img) return NULL; // Safety check
 
   // Step 1: Preprocess the image into the model input tensor
-  preprocess_image(img);
+  preprocess_image_ours(img);
 
   // Step 2: Run the model to get predictions
   float collision_prob;
-  run_model_prediction(&collision_prob);
+  run_model_prediction_ours(&collision_prob);
 
   VERBOSE_PRINT("Inference: p=%.2f\n", collision_prob);
 
   // Step 3: Store results in global struct safely
   pthread_mutex_lock(&mutex);
-  global_output.p = collision_prob;
-  global_output.updated = true;
+  global_output_ours.p = collision_prob;
+  global_output_ours.updated = true;
   pthread_mutex_unlock(&mutex);
 
   return img; 
@@ -116,29 +116,29 @@ static struct image_t *nn_object_detector(struct image_t *img, uint8_t camera_id
 /**
  * Initialization function for the Dronet Image Filter
  */
-void dronet_image_filter_init(void) {
-  memset(&global_output, 0, sizeof(struct nn_object_t)); 
+void dronet_image_filter_ours_init(void) {
+  memset(&global_output_ours, 0, sizeof(struct nn_object_t)); 
   pthread_mutex_init(&mutex, NULL);
 
   #ifdef NN_OBJECT_DETECTOR_CAMERA
     // Register video processing callback
-    cv_add_to_device(&NN_OBJECT_DETECTOR_CAMERA, nn_object_detector, NN_OBJECT_DETECTOR_FPS, 1);
+    cv_add_to_device(&NN_OBJECT_DETECTOR_CAMERA, nn_object_detector_ours, NN_OBJECT_DETECTOR_FPS, 1);
   #endif
 }
 
 /**
  * Periodic function to send processed image data via ABI messaging
  */
-void dronet_image_filter_periodic(void) {
+void dronet_image_filter_ours_periodic(void) {
 
   static struct nn_object_t local_output;
   pthread_mutex_lock(&mutex);
-  memcpy(&local_output, &global_output, sizeof(struct nn_object_t));
+  memcpy(&local_output, &global_output_ours, sizeof(struct nn_object_t));
   pthread_mutex_unlock(&mutex);
 
   if (local_output.updated) {
       // Send data via ABI messaging
-      AbiSendMsgNN_DETECTION(NN_OBJECT_DETECTION_ID, local_output.p);
+      AbiSendMsgNN_DETECTION(NN_OBJECT_DETECTION_ID_OURS, local_output.p);
       local_output.updated = false;  // Reset flag after sending
   }
 }

@@ -1,39 +1,54 @@
-/*
- * Copyright (C) Roland Meertens
- *
- * This file is part of paparazzi
- *
- */
-/**
- * @file "modules/orange_avoider/orange_avoider.c"
- * @author Roland Meertens
- * Example on how to use the colours detected to avoid orange pole in the cyberzoo
- * This module is an example module for the course AE4317 Autonomous Flight of Micro Air Vehicles at the TU Delft.
- * This module is used in combination with a color filter (cv_detect_color_object) and the navigation mode of the autopilot.
- * The avoidance strategy is to simply count the total number of orange pixels. When above a certain percentage threshold,
- * (given by color_count_frac) we assume that there is an obstacle and we turn.
- *
- * The color filter settings are set using the cv_detect_color_object. This module can run multiple filters simultaneously
- * so you have to define which filter to use with the ORANGE_AVOIDER_VISUAL_DETECTION_ID setting.
+ /**
+ * @file "modules/dronet_controller/dronet_controller.c"
+ * This module is used in combination with the following components:
+ * 
+ * - A color filter used to detect green pixels, enabling the drone
+ *   to recognize when it is approaching the boundaries of the arena. This helps ensure it 
+ *   remains within the Cyberzoo and avoids collisions with the surrounding nets.
+ *   If the detected green pixel count drops below a certain threshold 
+ *   (defined by `floor_count_frac`), the system assumes the drone is near the edge and commands 
+ *   it to turn around. The color detection logic is handled by the `cv_detect_color_object` module, 
+ *   and the filter to be used is specified by the `FLOOR_VISUAL_DETECTION_ID`.
+ * 
+ * - An image processor that runs inference using a trained CNN model.
+ *   The CNN outputs a collision probability, which is then used to compute appropriate velocity 
+ *   and heading rate commands for the drone. One of the two modules are used for this task:
+ *     - dronet_image_filter --> uses the model trained by the original authors of DroNet,
+ *                               the output of the network is accessed via:
+ *                               `DRONET_CONTROLLER_VISUAL_DETECTION_ID`
+ *     - dronet_imame_filter_ours --> uses our modified version of the model to improve inference time, 
+ *                                    the output of the network is accessed via:
+ *                                    `DRONET_CONTROLLER_VISUAL_DETECTION_ID_OURS`
+ * 
+ * By default the module will run inference on the DroNet model trained by original authors
+ * To run the simulation with the model modified and trained by us set variable `use_our_model` to true
  */
 
+
 #include "modules/dronet_controller/dronet_controller.h"
-#include "modules/computer_vision/dronet_image_filter.h"
-#include "modules/computer_vision/dronet_floor_detector.h"
+// #include "modules/computer_vision/dronet_image_filter.h"
 #include "firmwares/rotorcraft/navigation.h"
 #include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
 #include "state.h"
 #include "modules/core/abi.h"
+#include "generated/flight_plan.h"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
+
+/**
+ * By default the module will run inference on the DroNet model trained by original authors
+ * To run the simulation with the model modified and trained by us set this variable to true
+ */
+bool use_our_model = false;
+
+
+
 #define NAV_C // needed to get the nav functions like Inside...
-#include "generated/flight_plan.h"
-// #include "dronet.h"
 
 // Verbose settings
 #define DRONET_CONTROLLER_VERBOSE TRUE
@@ -46,10 +61,9 @@
 #endif
 
 // Define functions used
-static uint8_t heading_from_steering(float steering_input);
+static uint8_t heading_from_collision_prob(float collision_prob);
 static uint8_t velocity_from_collision_prob(float collision_prob);
 static uint8_t chooseRandomIncrementAvoidance(void);
-static uint8_t heading_from_collision_prob(float collision_prob);
 
 // Define maximum horizontal speed of the drone from airframe configuration
 #ifndef V_MAX
@@ -61,17 +75,12 @@ static uint8_t heading_from_collision_prob(float collision_prob);
 #define BETA 0.5f
 
 // Initialize global variables
-float s_k = 0.f;                        // Steering input
-float p = 1.f;                          // Probability of collision
-int32_t floor_count = 0;                // green color count from color filter for floor detection
-int32_t floor_centroid = 0;             // floor detector centroid in y direction (along the horizon)
-float avoidance_heading_direction = 0;  // heading change direction for avoidance [rad/s]
-int16_t obstacle_free_confidence = 0;   // a measure of how certain we are that the way ahead if safe.
+float p = 1.f;                                // Probability of collision
+int32_t floor_count = 0;                      // green color count from color filter for floor detection
+int32_t floor_centroid = 0;                   // floor detector centroid in y direction (along the horizon)
+float avoidance_heading_direction = 0;        // heading change direction for avoidance [rad/s]
+int16_t obstacle_free_confidence = 0;         // a measure of how certain we are that the way ahead if safe.
 const int16_t max_trajectory_confidence = 5;  // number of consecutive negative object detections to be sure we are obstacle free
-
-bool steering_enabled = true;
-int16_t safe_frame_count = 0;
-const int16_t safe_frame_threshold = 40; // adjust: 20 frames = ~1 sec at 20Hz
 
 // Define settings
 float oag_floor_count_frac = 0.03f;       // floor detection threshold as a fraction of total of image
@@ -79,32 +88,23 @@ float oag_heading_rate = RadOfDeg(20.f);  // heading change setpoint for avoidan
 
 // Define navigation states
 enum navigation_state_t {
-  SAFE,         // Default mode: use neural net output
-  COLLISION_AVOID,    // Stop or reverse to avoid collision
-  SEARCH_FOR_SAFE_HEADING,
-  OUT_OF_BOUNDS,       // Reorient and push drone back in bounds
-  REENTER_ARENA
+  SAFE,                           // Default mode: use neural net output
+  COLLISION_AVOID,                // Stop to avoid collision
+  SEARCH_FOR_SAFE_HEADING,        // Change heading until a a confident free direction is found
+  OUT_OF_BOUNDS,                  // Stop and reorient when out of bounds of the arena
+  REENTER_ARENA                   // Search for heading to reenter arena by detecting the green floor
 };
 
 enum navigation_state_t nav_state = SEARCH_FOR_SAFE_HEADING;   // current state in state machine
 
-#ifndef DRONET_CONTROLLER_VISUAL_DETECTION_ID
-// #define DRONET_CONTROLLER_VISUAL_DETECTION_ID ABI_BROADCAST
-#endif
 static abi_event dronet_image_ev;
 
-// Callback function
-static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float steering_input, float collision_prob)
+// Callback functions
+static void dronet_image_cb(uint8_t __attribute__((unused)) sender_id, float collision_prob)
 {
-  s_k = steering_input;
   p = collision_prob;
 }
 
-#ifndef FLOOR_VISUAL_DETECTION_ID
-// #define FLOOR_VISUAL_DETECTION_ID ABI_BROADCAST
-#error This module requires two color filters, as such you have to define FLOOR_VISUAL_DETECTION_ID to the orange filter
-#error Please define FLOOR_VISUAL_DETECTION_ID to be COLOR_OBJECT_DETECTION1_ID or COLOR_OBJECT_DETECTION2_ID in your airframe
-#endif
 static abi_event floor_detection_ev;
 static void floor_detection_cb(uint8_t __attribute__((unused)) sender_id,
                                int16_t __attribute__((unused)) pixel_x, int16_t pixel_y,
@@ -123,8 +123,13 @@ void dronet_controller_init(void) {
   chooseRandomIncrementAvoidance();
 
   // Bind the ABI message to receive image data
-  // Note: DRONET_CONTROLLER_VISUAL_DETECTION_ID corresponds to NN_OBJECT_DETECTION_ID
-  AbiBindMsgNN_DETECTION(DRONET_CONTROLLER_VISUAL_DETECTION_ID, &dronet_image_ev, dronet_image_cb);
+  if (!use_our_model) {
+    AbiBindMsgNN_DETECTION(DRONET_CONTROLLER_VISUAL_DETECTION_ID, &dronet_image_ev, dronet_image_cb);
+  }
+  else {
+    AbiBindMsgNN_DETECTION(DRONET_CONTROLLER_VISUAL_DETECTION_ID_OURS, &dronet_image_ev, dronet_image_cb);
+  }
+  
   AbiBindMsgVISUAL_DETECTION(FLOOR_VISUAL_DETECTION_ID, &floor_detection_ev, floor_detection_cb);
 }
 
@@ -132,14 +137,9 @@ void dronet_controller_periodic(void) {
 
   // Ensure we're in GUIDED mode (required for guided control to apply)
   if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
-    // Set the navigation state into the default control mode
+    // Set the navigation state into SEARCH_FOR_SAFE_HEADING state
     enum navigation_state_t nav_state = SEARCH_FOR_SAFE_HEADING;
     VERBOSE_PRINT("Not in GUIDED mode. Controller inactive.\n");
-    return;
-  }
-
-  if (s_k == 0 && p == 0) {
-    VERBOSE_PRINT("No valid inference results available.\n");
     return;
   }
 
@@ -160,7 +160,6 @@ void dronet_controller_periodic(void) {
   // Bound the value between 0 and max
   Bound(obstacle_free_confidence, 0, max_trajectory_confidence);
 
-
   switch (nav_state) {
     case SAFE:
 
@@ -169,40 +168,21 @@ void dronet_controller_periodic(void) {
       // Check if drone is out of bounds of the obstacle zone
       if (floor_count < floor_count_threshold || fabsf(floor_centroid_frac) > 0.12){
         nav_state = OUT_OF_BOUNDS;
-        // steering_enabled = false;
-        // safe_frame_count = 0;
       }
-      // Check if the predicted probability of collision is too high
+      // Check if the predicted probability of collision is too high over multiple frames
       else if (obstacle_free_confidence == 0){
         nav_state = COLLISION_AVOID;
-        // steering_enabled = false;
-        // safe_frame_count = 0;
       }
       // If safe navigate the drone
       else {
-        // safe_frame_count++;
-        // if (safe_frame_count >= safe_frame_threshold) {
-        //   steering_enabled = true;
-        // }
-    
-        // if (steering_enabled) {
-        //   heading_from_steering(s_k);
-        // }
-
-        // heading_from_steering(s_k);
         velocity_from_collision_prob(p);
         heading_from_collision_prob(p);
-
-        VERBOSE_PRINT("Periodic - Steering: %.2f, Collision: %.2f\n", s_k, p);
+        VERBOSE_PRINT("Periodic - Collision Probability: %.2f\n", p);
       }
       break;
 
     case COLLISION_AVOID:
-
       VERBOSE_PRINT("State: COLLISION_AVOID.\n");
-
-      // safe_frame_count = 0;
-      // steering_enabled = false;
 
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
@@ -213,16 +193,15 @@ void dronet_controller_periodic(void) {
 
       // Search for safe heading mode
       nav_state = SEARCH_FOR_SAFE_HEADING;
-
       break;
 
     case SEARCH_FOR_SAFE_HEADING:
-
       VERBOSE_PRINT("State: SEARCH_FOR_SAFE_HEADING.\n");
 
       guidance_h_set_heading_rate(avoidance_heading_direction * oag_heading_rate);
 
-      // Ensure the probability of collision is low enough before declaring the way safe
+      // Ensure the probability of collision is low enough for multiple frames
+      // before declaring the way safe
       if (obstacle_free_confidence >= 2){
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
         nav_state = SAFE;
@@ -230,38 +209,29 @@ void dronet_controller_periodic(void) {
       break;
 
     case OUT_OF_BOUNDS:
-
       VERBOSE_PRINT("State: OUT_OF_BOUNDS.\n");
-
-      // safe_frame_count = 0;
-      // steering_enabled = false;
 
       // Emergency stop
       guidance_h_set_body_vel(0.0f, 0.0f);
 
       // start turn back into arena
-      guidance_h_set_heading_rate(avoidance_heading_direction * RadOfDeg(15));
+      guidance_h_set_heading_rate(avoidance_heading_direction * oag_heading_rate);
 
       nav_state = REENTER_ARENA;
-
       break;
 
     case REENTER_ARENA:
-
       VERBOSE_PRINT("State: REENTER_ARENA.\n");
 
-      // safe_frame_count = 0;
-      // steering_enabled = false;
-
-      // force floor center to opposite side of turn to head back into arena
+      // Force floor center to opposite side of turn to head back into arena
       if (floor_count >= floor_count_threshold  && avoidance_heading_direction * floor_centroid_frac >= 0.f){
-        // return to heading mode
+        // Return to heading mode
         guidance_h_set_heading(stateGetNedToBodyEulers_f()->psi);
 
-        // reset safe counter
+        // Reset safe counter
         obstacle_free_confidence = 0;
 
-        // ensure direction is safe before continuing
+        // Ensure direction is safe before continuing
         nav_state = SAFE;
       }
       break;
@@ -270,42 +240,20 @@ void dronet_controller_periodic(void) {
   }
 }
 
+/*
+ * Updates the NAV heading rate based on the probability of collison
+ * the higher the probability the faster it turns away from the obstacle
+ */
 uint8_t heading_from_collision_prob(float collision_prob)
 {
-  // // Clamp collision probability
-  // collision_prob = fmaxf(fminf(collision_prob, 1.0f), 0.0f);
-
   // Scale heading change more aggressively when collision is likely
   float heading_rate = collision_prob * avoidance_heading_direction * oag_heading_rate;
 
-  // Apply rate (can also filter if needed)
+  // Apply rate 
   guidance_h_set_heading_rate(heading_rate);
 
   VERBOSE_PRINT("Updated heading rate: %.2f rad/s (collision_prob=%.2f)\n", heading_rate, collision_prob);
   return false;
-}
-  
-/*
- * Updates the NAV heading based on a scaled steering input in [-1, 1]
- * using a low-pass filter to smooth the heading changes.
- */
-uint8_t heading_from_steering(float steering_input)  
-{
-  // clamp steering input to [-1, 1]
-  steering_input = fmaxf(fminf(steering_input, 1.0f), -1.0f);
-                
-  // Compute new filtered heading based on scaled steering input
-  float new_heading = (1.0f - BETA) * stateGetNedToBodyEulers_f()->psi + BETA * ((M_PI / 2.0f) * steering_input);
-
-  // Normalize to [-pi, pi]
-  FLOAT_ANGLE_NORMALIZE(new_heading);
-
-  // Set heading
-  guidance_h_set_heading(new_heading);
-
-  VERBOSE_PRINT("Updated heading (rad): %f, (deg): %f\n", new_heading, DegOfRad(new_heading));
-  return false;
-}
 
 /*
  * Updates the NAV velocity in x and y direction based on the probability of collision with an obstacle
@@ -313,9 +261,6 @@ uint8_t heading_from_steering(float steering_input)
  */
 uint8_t velocity_from_collision_prob(float collision_prob)
 {
-  // Clamp collision probability to [0, 1]
-  collision_prob = fmaxf(fminf(collision_prob, 1.0f), 0.0f);
-
   // Compute current forward velocity
   struct EnuCoor_f *vel = stateGetSpeedEnu_f();
 

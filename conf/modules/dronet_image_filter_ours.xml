@@ -1,4 +1,4 @@
-<module name="dronet_image_filter" dir="computer_vision">
+<module name="dronet_image_filter_ours" dir="computer_vision">
   <doc>
     <description>
       This module captures, processes, and normalizes images from the drone's front camera.
@@ -7,14 +7,14 @@
   </doc>
 
   <header>
-    <file name="dronet_image_filter.h"/>
+    <file name="dronet_image_filter_ours.h"/>
   </header>
 
-  <init fun="dronet_image_filter_init()"/>
-  <periodic fun="dronet_image_filter_periodic()" freq="50"/>
+  <init fun="dronet_image_filter_ours_init()"/>
+  <periodic fun="dronet_image_filter_ours_periodic()" freq="50"/>
 
   <makefile>
-    <file name="dronet.c"/>
-    <file name="dronet_image_filter.c"/>
+    <file name="dronet_ours.c"/>
+    <file name="dronet_image_filter_ours.c"/>
   </makefile>
 </module>

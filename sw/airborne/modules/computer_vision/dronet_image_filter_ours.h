@@ -1,5 +1,5 @@
-#ifndef DRONET_IMAGE_FILTER_H
-#define DRONET_IMAGE_FILTER_H
+#ifndef DRONET_IMAGE_FILTER_OURS_H
+#define DRONET_IMAGE_FILTER_OURS_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -10,11 +10,11 @@
 #define IMG_HEIGHT 200
 
 // Initialization and periodic functions
-extern void dronet_image_filter_init(void);
-extern void dronet_image_filter_periodic(void);
+extern void dronet_image_filter_ours_init(void);
+extern void dronet_image_filter_ours_periodic(void);
 
 // Internal helpers (optional to expose depending on use case)
 void preprocess_image(struct image_t *img);
 void run_model_prediction(float *prob_collision);
 
-#endif // DRONET_IMAGE_FILTER_H
+#endif // DRONET_IMAGE_FILTER_OURS_H
