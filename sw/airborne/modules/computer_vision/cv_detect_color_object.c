@@ -67,9 +67,18 @@ struct image_t *object_detector2(struct image_t *img, uint8_t camera_id);
 
 // functions for drawing lines on the image for visualization
 void draw_vertical_line(struct image_t *img, int x, int y);
-void draw_horizontal_line(struct image_t *img, int x, int y);
+void draw_horizontal_line(struct image_t *img, int x);
 
-// function to count the number of green pixels in the image
+bool is_pixel_green(uint8_t *buffer, int x, int y, int width,
+  uint8_t lum_min, uint8_t lum_max,
+  uint8_t cb_min, uint8_t cb_max,
+  uint8_t cr_min, uint8_t cr_max);
+
+bool is_pixel_solid_green(uint8_t *buffer, int x, int y, int width, int height,
+  uint8_t lum_min, uint8_t lum_max,
+  uint8_t cb_min, uint8_t cb_max,
+  uint8_t cr_min, uint8_t cr_max);
+  
 uint32_t count_green_pixels(struct image_t *img, bool draw, 
                               int *segment_counts, int num_segments,
                               uint8_t lum_min, uint8_t lum_max,
@@ -120,11 +129,6 @@ static struct image_t *object_detector(struct image_t *img, uint8_t filter)
   
   int32_t count = count_green_pixels(img, draw, segment_counts, num_segments, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max,fill_y_limit);
 
-  // #########################
-  // Chnage the 128 value (the value before the draw bool to hard code the fill limit)
-  // It is now set to half of the image width (255). For ideal results, this should be right at the horizon during forward flight so keep inmind the forward pitch.
-  //img = process_image(img, 235, 255, 86, 106, 120, 140, 128, draw, &count);
-  // #########################
   
   // calculate the percentage of green in every segment
   for (uint16_t i = 0; i < num_segments; i++) {
@@ -191,6 +195,64 @@ void color_object_detector_init(void)
   #endif
 }
 
+//function checks if a pixel is within the specified color bounds
+bool is_pixel_green(uint8_t *buffer, int x, int y, int width,
+                    uint8_t lum_min, uint8_t lum_max,
+                    uint8_t cb_min, uint8_t cb_max,
+                    uint8_t cr_min, uint8_t cr_max) {
+    uint8_t *yp, *up, *vp;
+
+    if (x % 2 == 0) {
+        up = &buffer[y * 2 * width + 2 * x];
+        yp = &buffer[y * 2 * width + 2 * x + 1];
+        vp = &buffer[y * 2 * width + 2 * x + 2];
+    } else {
+        up = &buffer[y * 2 * width + 2 * x - 2];
+        vp = &buffer[y * 2 * width + 2 * x];
+        yp = &buffer[y * 2 * width + 2 * x + 1];
+    }
+
+    return (*yp >= lum_min) && (*yp <= lum_max) &&
+           (*up >= cb_min) && (*up <= cb_max) &&
+           (*vp >= cr_min) && (*vp <= cr_max);
+}
+
+//function checks if the neighbouring pixels are also green 
+//(get ride of noise, note increase x/y search window for stricter filtering)
+bool is_pixel_solid_green(uint8_t *buffer, int x, int y, int width, int height,
+                          uint8_t lum_min, uint8_t lum_max,
+                          uint8_t cb_min, uint8_t cb_max,
+                          uint8_t cr_min, uint8_t cr_max) {
+    int matches = 0;
+    int valid_neighbors = 0;
+
+    int x_search_window = 5; //will look num/2 left and right relative to pixel
+    int y_search_window = 5; //will look num/2 down and up relative to pixel
+
+    int half_x = x_search_window / 2;
+    int half_y = y_search_window / 2;
+
+    for (int dy = -half_y; dy <= half_y; dy++) {
+        for (int dx = -half_x; dx <= half_x; dx++) {
+            if (dx == 0 && dy == 0) continue;
+
+            int nx = x + dx;
+            int ny = y + dy;
+
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                valid_neighbors++;
+                if (is_pixel_green(buffer, nx, ny, width, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max)) {
+                    matches++;
+                }
+            }
+        }
+    }
+    float percentage_required = 0.5f; // threshold percentage of search window
+    int required_matches_threshold = (int)(percentage_required * valid_neighbors);
+
+    return matches >= required_matches_threshold;
+}
+
 /*
  * count_green_pixels
  *
@@ -204,6 +266,8 @@ void color_object_detector_init(void)
  * @param cr_min - minimum Cr value for the filter in YCbCr colorspace
  * @param cr_max - maximum Cr value for the filter in YCbCr colorspace
  * @param draw - whether or not to draw on image
+ * @param segment_counts - array to store the number of pixels in each segment
+ * @param fill_y_limit - y limit for the carpet fill
  * @return number of pixels in the image within the filter bounds.
  */
 uint32_t count_green_pixels(struct image_t *img, bool draw, 
@@ -222,18 +286,12 @@ uint32_t count_green_pixels(struct image_t *img, bool draw,
 
   int segment_height = (IMAGE_HEIGHT + num_segments - 1) / num_segments;
 
-  draw_vertical_line(img, 0, IMAGE_HEIGHT/5);
-  draw_vertical_line(img, 0, IMAGE_HEIGHT*2/5);
-  draw_vertical_line(img, 0, IMAGE_HEIGHT*3/5);
-  draw_vertical_line(img, 0, IMAGE_HEIGHT*4/5);
-  draw_horizontal_line(img, 128, 0);
-  draw_horizontal_line(img, IMAGE_WIDTH-40, 0);
-
-  for (uint16_t y = IMAGE_HEIGHT/5; y < IMAGE_HEIGHT*4/5; y++) {
+  for (uint16_t y = 0; y < IMAGE_HEIGHT; y++) {
     bool detected_right = false;
     int segment_index = y / segment_height;
 
-    for (int x = LIMIT; x >= 40; x--) {
+    // Upper bound for green pixel detection (not looking at the whole image otherwise set x = IMAGE_WIDTH)
+    for (int x = 168; x >= 0; x--) {
       uint8_t *yp, *up, *vp;
 
       if (x % 2 == 0) {
@@ -248,25 +306,45 @@ uint32_t count_green_pixels(struct image_t *img, bool draw,
         yp = &buffer[y * 2 * IMAGE_WIDTH + 2 * x + 1];   // Y2
       }
 
-      if ((*yp >= lum_min) && (*yp <= lum_max) &&
-          (*up >= cb_min ) && (*up <= cb_max ) &&
-          (*vp >= cr_min ) && (*vp <= cr_max )) {
-        detected_right = true;
+      bool is_color_match = is_pixel_green(buffer, x, y, IMAGE_WIDTH, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max);
+      bool is_neighbor_color = is_pixel_solid_green(buffer, x, y, IMAGE_WIDTH, IMAGE_HEIGHT, lum_min, lum_max, cb_min, cb_max, cr_min, cr_max);
+
+      if (is_color_match && is_neighbor_color) {
+          cnt++;
+          segment_counts[segment_index]++;
+          if (draw) {
+            *yp = 255;
+          }
+          if (x < LIMIT) {
+            detected_right = true;
+          }
       }
 
-      // Once green is detected in this row, count all pixels to the left
-      if (detected_right) {
+      // Once green is detected in this row, make pixels to the left green and count in respective segment
+      if (detected_right && !is_color_match) {
         cnt++;
         segment_counts[segment_index]++;
         if (draw) {
           *yp = 255;
+          // *yp = 245;
+          // *up = 96;
+          // *vp = 130;
         }
       }
     }
   }
+  // Debugging Visuals
+  draw_vertical_line(img, 0, IMAGE_HEIGHT/5);
+  draw_vertical_line(img, 0, IMAGE_HEIGHT*2/5);
+  draw_vertical_line(img, 0, IMAGE_HEIGHT*3/5);
+  draw_vertical_line(img, 0, IMAGE_HEIGHT*4/5);
+  draw_horizontal_line(img, LIMIT); // Green pixel detection limit
+  draw_horizontal_line(img, 168); // Carpet removal limit
 
   return cnt;
 }
+
+
 
 // send the color object detection data over ABI
 void color_object_detector_periodic(void)
@@ -329,14 +407,15 @@ void draw_vertical_line(struct image_t *img, int x, int y) {
   }
 }
 
+
 // Draws a horizontal line across the image at a given y-coordinate
-void draw_horizontal_line(struct image_t *img, int x, int y) {
+void draw_horizontal_line(struct image_t *img, int x) {
   if (x < 0 || x >= img->h) return; // Bounds check
 
   uint8_t *buffer = img->buf;
 
   // Green Line
-  for (y; y < img->h; y++) {
+  for (int y = 0; y < img->h; y++) {
     int index = y * 2 * img->w + 2 * x;
     if (x % 2 == 0) {
       buffer[index + 1] = 0;
