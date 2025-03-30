@@ -45,7 +45,7 @@ bool cod_draw1 = false;
 bool cod_draw2 = false;
 
 uint16_t num_segments = 5;  // the number of segments we want to divide the image into
-uint8_t fill_y_limit = 140; // the y limit for the carpet fill
+uint8_t fill_y_limit = 100; // the y limit for the carpet fill
 
 
 // define global variables
