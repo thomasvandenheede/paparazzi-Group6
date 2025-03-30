@@ -44,12 +44,8 @@ uint8_t cod_cr_max2 = 0;
 bool cod_draw1 = false;
 bool cod_draw2 = false;
 
-uint16_t num_segments = 5;
-  // #########################
-  // Chnage the 128 value (the value before the draw bool to hard code the fill limit)
-  // It is now set to half of the image width (255). For ideal results, this should be right at the horizon during forward flight so keep inmind the forward pitch.
-  // #########################
-uint8_t fill_y_limit = 85;
+uint16_t num_segments = 5;  // the number of segments we want to divide the image into
+uint8_t fill_y_limit = 140; // the y limit for the carpet fill
 
 
 // define global variables
@@ -196,6 +192,7 @@ void color_object_detector_init(void)
   #endif
 }
 
+//function checks if a pixel is within the specified color bounds
 bool is_pixel_green(uint8_t *buffer, int x, int y, int width,
                     uint8_t lum_min, uint8_t lum_max,
                     uint8_t cb_min, uint8_t cb_max,
@@ -217,7 +214,8 @@ bool is_pixel_green(uint8_t *buffer, int x, int y, int width,
            (*vp >= cr_min) && (*vp <= cr_max);
 }
 
-
+//function checks if the neighbouring pixels are also green 
+//(get ride of noise, note increase x/y search window for stricter filtering)
 bool is_pixel_solid_green(uint8_t *buffer, int x, int y, int width, int height,
                           uint8_t lum_min, uint8_t lum_max,
                           uint8_t cb_min, uint8_t cb_max,
@@ -265,6 +263,8 @@ bool is_pixel_solid_green(uint8_t *buffer, int x, int y, int width, int height,
  * @param cr_min - minimum Cr value for the filter in YCbCr colorspace
  * @param cr_max - maximum Cr value for the filter in YCbCr colorspace
  * @param draw - whether or not to draw on image
+ * @param segment_counts - array to store the number of pixels in each segment
+ * @param fill_y_limit - y limit for the carpet fill
  * @return number of pixels in the image within the filter bounds.
  */
 uint32_t count_green_pixels(struct image_t *img, bool draw, 
@@ -288,6 +288,7 @@ uint32_t count_green_pixels(struct image_t *img, bool draw,
     bool detected_right = false;
     int segment_index = y / segment_height;
 
+    // Upper bound for green pixel detection (not looking at the whole image otherwise set x = IMAGE_WIDTH)
     for (int x = 168; x >= 0; x--) {
       uint8_t *yp, *up, *vp;
 
@@ -317,7 +318,7 @@ uint32_t count_green_pixels(struct image_t *img, bool draw,
           }
       }
 
-      // Once green is detected in this row, count all pixels to the left
+      // Once green is detected in this row, make pixels to the left green and count in respective segment
       if (detected_right && !is_color_match) {
         cnt++;
         segment_counts[segment_index]++;
@@ -331,12 +332,13 @@ uint32_t count_green_pixels(struct image_t *img, bool draw,
     }
   }
 
+  // Debugging Visuals
   draw_vertical_line(img, 0, IMAGE_HEIGHT/5);
   draw_vertical_line(img, 0, IMAGE_HEIGHT*2/5);
   draw_vertical_line(img, 0, IMAGE_HEIGHT*3/5);
   draw_vertical_line(img, 0, IMAGE_HEIGHT*4/5);
-  draw_horizontal_line(img, LIMIT);
-  draw_horizontal_line(img, 168);
+  draw_horizontal_line(img, LIMIT); // Green pixel detection limit
+  draw_horizontal_line(img, 168); // Carpet removal limit
 
   return cnt;
 }
