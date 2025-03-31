@@ -105,11 +105,11 @@ Starting the Simulation
 |-------------------------|----------------------------------------|---------------|
 | `mavlabCourse2025`      |  Main branch with final code implementation  |✅ Active|
 | `2_path_planning_comb`  |  Final implementation of carpet removal function with green detector |✅ Active|
-| `nn_navigation`         |                                        |               |
+| `nn_navigation`         |  Final implementation of neural network approach                                      | ✅ Active     |
 | `1_path_planning`       |  Testing branch for green follower and implementations for different features     | 🧪Experimental |
 | `green_follower`        |  Testing green detection on center image segment             |  🧪Experimental             |
 | `carpert_removal`       |  Testing additional image processing function  | 🧪Experimental |
 | `green_detection`       |  First implementation of detecting green |🧪Experimental |
 | `0_data`                |  Image data for all test flights       |✅ Active|
-| `depth_processing`      |                                        |               |
-| `depth_net_testing`     |                                        |               |
+| `depth_processing`      |  Testing training model to replicate disparity maps                                      |    🧪Experimental           |
+| `depth_net_testing`     |  Testing training model to replicate disparity maps                                      |   🧪Experimental            |
