@@ -64,7 +64,7 @@ ffplay -vf "transpose=2, scale=2*iw:-1" -i ./sw/tools/rtp_viewer/rtp_5000.sdp -p
 
 ## Running Our Program
 
-After cloning the repository, ensure you're on the correct branch (`main`) and have installed all necessary dependencies.
+After cloning the repository, ensure you're on the correct branch (`mavlabCourse2025`) and have installed all necessary dependencies.
 
 Navigate to the project directory and run:
 
