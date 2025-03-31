@@ -108,8 +108,8 @@ Starting the Simulation
 | `nn_navigation`         |                                        |               |
 | `1_path_planning`       |  Testing branch for green follower and implementations for different features     | 🧪Experimental |
 | `green_follower`        |  Testing green detection on center image segment             |  🧪Experimental             |
-| `carpert_removal`       |  Testing additoanl image processing function  | 🧪Experimental |
-| `green_detection`       |                                        |               |
+| `carpert_removal`       |  Testing additional image processing function  | 🧪Experimental |
+| `green_detection`       |  First implementation of detecting green |🧪Experimental |
 | `0_data`                |  Image data for all test flights       |✅ Active|
 | `depth_processing`      |                                        |               |
 | `depth_net_testing`     |                                        |               |
