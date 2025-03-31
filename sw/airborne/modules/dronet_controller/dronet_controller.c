@@ -255,6 +255,8 @@ uint8_t heading_from_collision_prob(float collision_prob)
   VERBOSE_PRINT("Updated heading rate: %.2f rad/s (collision_prob=%.2f)\n", heading_rate, collision_prob);
   return false;
 
+}
+
 /*
  * Updates the NAV velocity in x and y direction based on the probability of collision with an obstacle
  * using a low-pass filter to smooth the velocity changes.

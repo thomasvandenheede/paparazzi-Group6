@@ -93,7 +93,9 @@ New modules added and used in this implementation
 
 2. `dronet_image_filter` - to navigate to it type: `cd ~/paparazzi/sw/airborne/modules/computer_vision`
   - uses the pretrained model given by authors of DroNet implementation
-  
+
 3. `dronet_image_filter_ours` - to navigate to it type: `cd ~/paparazzi/sw/airborne/modules/computer_vision`
   - uses our own version of the model
+
+Note: to run the code option `bebop_orange_avoid_guided` needs to be selected
 
