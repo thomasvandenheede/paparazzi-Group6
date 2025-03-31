@@ -1,4 +1,9 @@
-// green avoider color detection implementation
+// green attractor color detection implementation
+
+// This module implements green object detection using color filtering by analyzing
+// the camera input to identify green regions, segments the image, counts green pixels,
+// and communicates detection data for control.
+
 #include "modules/computer_vision/cv_detect_color_object.h"
 #include "modules/computer_vision/cv.h"
 #include "modules/core/abi.h"
