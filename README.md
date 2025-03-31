@@ -98,3 +98,18 @@ Starting the Simulation
 4. Press the **Start Session** button.
 
 ---
+
+## Branch Overview
+
+| Branch Name             | Description                            | Status        |
+|-------------------------|----------------------------------------|---------------|
+| `mavlabCourse2025`      |  Main branch with final code implementation  |✅ Active|
+| `2_path_planning_comb`  |  Final implementation of carpet removal function with green detector |✅ Active|
+| `nn_navigation`         |                                        |               |
+| `1_path_planning`       |                                        |               |
+| `green_follower`        |                                        |               |
+| `carpert_removal`       |  Testing additoanl image processing function  | 🧪Experimental |
+| `green_detection`       |                                        |               |
+| `0_data`                |  Image data for all test flights       |               |
+| `depth_processing`      |                                        |               |
+| `depth_net_testing`     |                                        |               |
