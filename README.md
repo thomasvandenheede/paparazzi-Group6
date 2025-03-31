@@ -110,6 +110,6 @@ Starting the Simulation
 | `green_follower`        |  Testing green detection on center image segment             |  🧪Experimental             |
 | `carpert_removal`       |  Testing additoanl image processing function  | 🧪Experimental |
 | `green_detection`       |                                        |               |
-| `0_data`                |  Image data for all test flights       |               |
+| `0_data`                |  Image data for all test flights       |✅ Active|
 | `depth_processing`      |                                        |               |
 | `depth_net_testing`     |                                        |               |
