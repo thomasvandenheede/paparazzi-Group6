@@ -84,3 +84,16 @@ Flight
 ------
 
 1.  From the Paparazzi Center, select the flight session and ... do the same as in simulation !
+
+
+New modules added and used in this implementation
+-------------------------------------------------
+
+1. `dronet_controller` - to navigate to it type: `cd ~/paparazzi/sw/airborne/modules/dronet_controller`
+
+2. `dronet_image_filter` - to navigate to it type: `cd ~/paparazzi/sw/airborne/modules/computer_vision`
+  - uses the pretrained model given by authors of DroNet implementation
+  
+3. `dronet_image_filter_ours` - to navigate to it type: `cd ~/paparazzi/sw/airborne/modules/computer_vision`
+  - uses our own version of the model
+

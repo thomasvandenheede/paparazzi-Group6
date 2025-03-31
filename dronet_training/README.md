@@ -1,3 +1,9 @@
+Important files and folders related to DroNet training and evaluation results:
+-  `results` folder contains the results on our own dataset and test set of DroNet for both models trained by us and pre-trained
+-  `label_data.ipynb` notebook showcasing how we labeled the data
+
+
+
 To train DroNet model you need to use the following commands:
 
 0. Install conda

@@ -26,7 +26,7 @@
 
 
 #include "modules/dronet_controller/dronet_controller.h"
-// #include "modules/computer_vision/dronet_image_filter.h"
+#include "modules/computer_vision/dronet_image_filter.h"
 #include "firmwares/rotorcraft/navigation.h"
 #include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
