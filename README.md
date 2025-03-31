@@ -61,3 +61,40 @@ ffplay -vf "transpose=2, scale=2*iw:-1" -i ./sw/tools/rtp_viewer/rtp_5000.sdp -p
 ```
 
 ---
+
+## Running Our Program
+
+After cloning the repository, ensure you're on the correct branch (`main`) and have installed all necessary dependencies.
+
+Navigate to the project directory and run:
+
+```bash
+make clean
+make
+```
+Then start Paparazzi with the following command:
+```bash
+./paparazzi
+```
+
+Ensure the following configurations are set in the Paparazzi Center:
+Airframe: ```airframes/tudelft/bebop_course_orangeavoid.xml```
+Flightplan: ```flight_plans/tudelft/course_orangeavoid_cyberzoo.xml```
+Module: ```bebop_orange_avoid```
+
+
+As Described in the Course Manual
+
+1. Under the **Build Target**, select `nps`.
+2. Click the **Compile** button (gear icon).
+3. The output should read:  
+   `Build bebop_orange_avoid Done`
+
+Starting the Simulation
+
+1. Go to the **Operations** tab.
+2. Keep the default **Control Panel** settings.
+3. For the session type, select **Simulation + Gazebo**.
+4. Press the **Start Session** button.
+
+---
