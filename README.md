@@ -106,7 +106,7 @@ Starting the Simulation
 | `mavlabCourse2025`      |  Main branch with final code implementation  |✅ Active|
 | `2_path_planning_comb`  |  Final implementation of carpet removal function with green detector |✅ Active|
 | `nn_navigation`         |                                        |               |
-| `1_path_planning`       |                                        |               |
+| `1_path_planning`       |                                        |  🧪Experimental             |
 | `green_follower`        |                                        |               |
 | `carpert_removal`       |  Testing additoanl image processing function  | 🧪Experimental |
 | `green_detection`       |                                        |               |
